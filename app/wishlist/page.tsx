@@ -35,10 +35,12 @@ export default function WishlistPage() {
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { router.replace('/auth/login'); return }
+    // onAuthStateChange fires immediately with INITIAL_SESSION — no async delay
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) { router.replace('/auth/login'); return }
       setAuthReady(true)
     })
+    return () => subscription.unsubscribe()
   }, [router])
 
   const handleAddToCart = (item: typeof items[number]) => {
