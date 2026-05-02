@@ -1,0 +1,216 @@
+import type { Metadata } from 'next'
+import { Ruler, Info } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'Size Guide — Aahvani Jewels',
+  description: 'Find your perfect jewellery size — ring sizes, necklace lengths, bracelet sizes and measuring guides.',
+}
+
+function GoldDivider() {
+  return (
+    <div className="flex items-center gap-3 my-2" aria-hidden="true">
+      <span className="h-px w-8 bg-[#C6973F]/40" />
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
+      <span className="h-px w-8 bg-[#C6973F]/40" />
+    </div>
+  )
+}
+
+function SectionHead({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div className="mb-8">
+      <h2 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A] mb-1">{title}</h2>
+      <GoldDivider />
+      <p className="text-sm text-[#1A1A1A]/45 font-light mt-3">{sub}</p>
+    </div>
+  )
+}
+
+const RING_SIZES = [
+  { indian: '5',  diameter: '14.0', circumference: '44.0' },
+  { indian: '6',  diameter: '14.4', circumference: '45.3' },
+  { indian: '7',  diameter: '14.8', circumference: '46.5' },
+  { indian: '8',  diameter: '15.2', circumference: '47.8' },
+  { indian: '9',  diameter: '15.6', circumference: '49.0' },
+  { indian: '10', diameter: '16.1', circumference: '50.6' },
+  { indian: '11', diameter: '16.5', circumference: '51.8' },
+  { indian: '12', diameter: '16.9', circumference: '53.1' },
+  { indian: '13', diameter: '17.3', circumference: '54.4' },
+  { indian: '14', diameter: '17.7', circumference: '55.6' },
+  { indian: '15', diameter: '18.1', circumference: '56.9' },
+  { indian: '16', diameter: '18.5', circumference: '58.1' },
+  { indian: '17', diameter: '19.0', circumference: '59.7' },
+  { indian: '18', diameter: '19.4', circumference: '61.0' },
+  { indian: '19', diameter: '19.8', circumference: '62.2' },
+  { indian: '20', diameter: '20.2', circumference: '63.5' },
+  { indian: '21', diameter: '20.6', circumference: '64.7' },
+  { indian: '22', diameter: '21.0', circumference: '66.0' },
+]
+
+const NECKLACE_LENGTHS = [
+  { inches: '14"', cm: '36 cm', name: 'Collar',       desc: 'Sits at the base of the neck. Ideal for open necklines.' },
+  { inches: '16"', cm: '41 cm', name: 'Choker',        desc: 'Rests on the collarbone. Most popular everyday length.' },
+  { inches: '18"', cm: '46 cm', name: 'Princess',      desc: 'Just below the collarbone. Versatile — suits most necklines.' },
+  { inches: '20"', cm: '51 cm', name: 'Matinee',       desc: 'Falls over the chest. Elegant for formal and festive wear.' },
+  { inches: '24"', cm: '61 cm', name: 'Opera',         desc: 'Reaches the neckline. Statement length for special occasions.' },
+  { inches: '30"', cm: '76 cm', name: 'Rope / Lariat', desc: 'Long and dramatic. Can be layered, looped or knotted.' },
+]
+
+const BRACELET_SIZES = [
+  { size: 'XS', wrist: '13–14 cm', bracelet: '15–16 cm' },
+  { size: 'S',  wrist: '14–15 cm', bracelet: '16–17 cm' },
+  { size: 'M',  wrist: '15–17 cm', bracelet: '17–18 cm' },
+  { size: 'L',  wrist: '17–18 cm', bracelet: '19–20 cm' },
+  { size: 'XL', wrist: '18–19 cm', bracelet: '20–21 cm' },
+]
+
+export default function SizeGuidePage() {
+  return (
+    <div className="min-h-screen bg-[#FDF6EC]">
+
+      {/* Hero */}
+      <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
+        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Fit perfectly</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">Size Guide</h1>
+        <GoldDivider />
+        <p className="mt-4 text-sm text-[#1A1A1A]/45 font-light max-w-md mx-auto leading-relaxed">
+          Use our sizing charts to find your perfect fit across rings, necklaces and bracelets.
+        </p>
+      </section>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
+
+        {/* ── Rings ── */}
+        <section>
+          <SectionHead
+            title="Ring Sizes"
+            sub="Indian ring sizes range from 5 to 22. Use the diameter or circumference of your finger to find your size."
+          />
+
+          {/* How to measure */}
+          <div className="flex gap-3 p-4 bg-[#C6973F]/6 border border-[#C6973F]/15 mb-7">
+            <Info size={15} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-[#1A1A1A]/60 font-light leading-relaxed">
+              <span className="font-medium text-[#1A1A1A]">How to measure: </span>
+              Wrap a thin strip of paper or a thread around your finger. Mark where it meets, then measure the length in mm — that is your circumference. Divide by π (3.14) to get your diameter.
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left bg-white border border-[#1A1A1A]/8">
+              <thead>
+                <tr className="bg-[#1A1A1A] text-white">
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Indian Size</th>
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Diameter (mm)</th>
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Circumference (mm)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1A1A1A]/6">
+                {RING_SIZES.map((r, i) => (
+                  <tr key={r.indian} className={i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF8]'}>
+                    <td className="px-5 py-3 font-semibold text-[#C6973F] text-sm">{r.indian}</td>
+                    <td className="px-5 py-3 text-sm text-[#1A1A1A]/65 font-light">{r.diameter}</td>
+                    <td className="px-5 py-3 text-sm text-[#1A1A1A]/65 font-light">{r.circumference}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 bg-[#FDF6EC] border border-[#C6973F]/12 mt-5">
+            <Ruler size={14} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#1A1A1A]/50 font-light leading-relaxed">
+              <span className="font-medium text-[#1A1A1A]">Tip: </span>
+              Fingers are slightly larger in the evening and in warm weather. Measure at the end of the day for the most accurate fit. If you are between sizes, choose the larger size.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Necklaces ── */}
+        <section>
+          <SectionHead
+            title="Necklace Lengths"
+            sub="Choose your necklace length based on your neckline and personal style. All our necklaces show their length on the product page."
+          />
+
+          {/* Visual length guide */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {NECKLACE_LENGTHS.map((n) => (
+              <div key={n.inches} className="flex items-start gap-4 p-4 bg-white border border-[#1A1A1A]/8 hover:border-[#C6973F]/25 transition-colors">
+                <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-1">
+                  <span className="font-serif text-xl font-bold text-[#C6973F] leading-none">{n.inches}</span>
+                  <span className="text-[0.58rem] text-[#1A1A1A]/35 font-light">{n.cm}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#1A1A1A] mb-1">{n.name}</p>
+                  <p className="text-xs text-[#1A1A1A]/50 font-light leading-relaxed">{n.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3 p-4 bg-[#C6973F]/6 border border-[#C6973F]/15">
+            <Info size={15} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-[#1A1A1A]/60 font-light leading-relaxed">
+              <span className="font-medium text-[#1A1A1A]">How to measure: </span>
+              Use a soft measuring tape and wrap it around your neck at the position where you want the necklace to sit. Add 1–2 cm for comfort.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Bracelets ── */}
+        <section>
+          <SectionHead
+            title="Bracelet Sizes"
+            sub="Our bracelets are sized by wrist circumference. Most of our bangles and cuffs are 'Free Size' and fit wrists up to 17 cm comfortably."
+          />
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left bg-white border border-[#1A1A1A]/8">
+              <thead>
+                <tr className="bg-[#1A1A1A] text-white">
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Size</th>
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Wrist Circumference</th>
+                  <th className="px-5 py-3.5 text-[0.62rem] tracking-[0.2em] uppercase font-semibold">Bracelet Length</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1A1A1A]/6">
+                {BRACELET_SIZES.map((b, i) => (
+                  <tr key={b.size} className={i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF8]'}>
+                    <td className="px-5 py-3 font-semibold text-[#C6973F] text-sm">{b.size}</td>
+                    <td className="px-5 py-3 text-sm text-[#1A1A1A]/65 font-light">{b.wrist}</td>
+                    <td className="px-5 py-3 text-sm text-[#1A1A1A]/65 font-light">{b.bracelet}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex gap-3 p-4 bg-[#C6973F]/6 border border-[#C6973F]/15 mt-5">
+            <Info size={15} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-[#1A1A1A]/60 font-light leading-relaxed">
+              <span className="font-medium text-[#1A1A1A]">How to measure: </span>
+              Wrap a tape measure around the widest part of your hand (just below your knuckles), keeping your fingers together. This gives your wrist opening size. Add 1–2 cm for a comfortable fit.
+            </p>
+          </div>
+        </section>
+
+        {/* Still unsure */}
+        <section className="bg-[#1A1A1A] p-8 text-center">
+          <p className="text-[0.6rem] tracking-[0.35em] uppercase text-[#C6973F] font-medium mb-3">Still unsure?</p>
+          <h3 className="font-serif text-2xl font-semibold text-white mb-3">We&apos;re happy to help</h3>
+          <p className="text-sm text-white/40 font-light max-w-sm mx-auto leading-relaxed mb-6">
+            Contact our team with your measurements and we&apos;ll recommend the perfect size for you.
+          </p>
+          <a
+            href="/contact"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-[#C6973F] text-[#C6973F] text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
+          >
+            Contact Us
+          </a>
+        </section>
+
+      </div>
+    </div>
+  )
+}

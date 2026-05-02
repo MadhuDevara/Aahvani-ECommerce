@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   SlidersHorizontal,
   X,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react'
 import { PRODUCTS, inr, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
+import { useWishlistStore } from '@/lib/wishlistStore'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -415,17 +417,31 @@ function FilterPanel({
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function ShopClient() {
-  const [filters, setFilters] = useState<FilterState>({
-    category: 'All',
-    prices: [],
-    materials: [],
-    rating: '',
+  const searchParams = useSearchParams()
+
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const cat = searchParams.get('category') ?? 'All'
+    return {
+      category:  CATEGORIES.includes(cat) ? cat : 'All',
+      prices:    [],
+      materials: [],
+      rating:    '',
+    }
   })
   const [sortBy, setSortBy]               = useState('newest')
   const [view, setView]                   = useState<'grid' | 'list'>('grid')
   const [currentPage, setCurrentPage]     = useState(1)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [wishlisted, setWishlisted]       = useState<Set<number>>(new Set())
+  const toggleWishlistStore = useWishlistStore((s) => s.toggleWishlist)
+  const isWishlistedStore   = useWishlistStore((s) => s.isWishlisted)
+
+  // Sync category filter when URL param changes (e.g. navigating from homepage cards)
+  useEffect(() => {
+    const cat = searchParams.get('category') ?? 'All'
+    const resolved = CATEGORIES.includes(cat) ? cat : 'All'
+    setFilters((prev) => ({ ...prev, category: resolved }))
+    setCurrentPage(1)
+  }, [searchParams])
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
@@ -471,12 +487,11 @@ export default function ShopClient() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const toggleWishlist = (id: number) =>
-    setWishlisted((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
+  const toggleWishlist = (id: number) => {
+    const p = PRODUCTS.find((prod) => prod.id === id)
+    if (!p) return
+    toggleWishlistStore({ id: String(p.id), name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
+  }
 
   const updateFilters = (patch: Partial<FilterState>) =>
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -690,7 +705,7 @@ export default function ShopClient() {
                   <ProductCard
                     key={p.id}
                     product={p}
-                    isWishlisted={wishlisted.has(p.id)}
+                    isWishlisted={isWishlistedStore(String(p.id))}
                     onToggleWishlist={toggleWishlist}
                   />
                 ))}
@@ -701,7 +716,7 @@ export default function ShopClient() {
                   <ProductCard
                     key={p.id}
                     product={p}
-                    isWishlisted={wishlisted.has(p.id)}
+                    isWishlisted={isWishlistedStore(String(p.id))}
                     onToggleWishlist={toggleWishlist}
                     listView
                   />

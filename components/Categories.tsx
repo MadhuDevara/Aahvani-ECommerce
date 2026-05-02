@@ -13,10 +13,10 @@ interface Category {
 }
 
 const CATEGORIES: Category[] = [
-  { name: 'Rings',     href: '/collections/rings',     Icon: CircleDot as IconComponent, count: '42 designs', bg: 'bg-[#F5EBD8]' },
-  { name: 'Earrings',  href: '/collections/earrings',  Icon: Sparkles  as IconComponent, count: '68 designs', bg: 'bg-[#EFE0C9]' },
-  { name: 'Necklaces', href: '/collections/necklaces', Icon: Gem       as IconComponent, count: '35 designs', bg: 'bg-[#F9F0E3]' },
-  { name: 'Bracelets', href: '/collections/bracelets', Icon: Link2     as IconComponent, count: '29 designs', bg: 'bg-[#EDE4D5]' },
+  { name: 'Rings',     href: '/shop?category=Rings',     Icon: CircleDot as IconComponent, count: '42 designs', bg: 'bg-[#F5EBD8]' },
+  { name: 'Earrings',  href: '/shop?category=Earrings',  Icon: Sparkles  as IconComponent, count: '68 designs', bg: 'bg-[#EFE0C9]' },
+  { name: 'Necklaces', href: '/shop?category=Necklaces', Icon: Gem       as IconComponent, count: '35 designs', bg: 'bg-[#F9F0E3]' },
+  { name: 'Bracelets', href: '/shop?category=Bracelets', Icon: Link2     as IconComponent, count: '29 designs', bg: 'bg-[#EDE4D5]' },
 ]
 
 function SectionDivider() {

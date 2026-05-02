@@ -17,6 +17,7 @@ const NAV_LINKS = [
 ]
 
 const DROPDOWN_ITEMS = [
+  { href: '/profile',  Icon: User,    label: 'My Profile' },
   { href: '/orders',   Icon: Package, label: 'My Orders'  },
   { href: '/wishlist', Icon: Heart,   label: 'Wishlist'   },
 ]
@@ -121,12 +122,13 @@ export default function Navbar() {
               <Search size={18} strokeWidth={1.5} />
             </button>
 
-            <button
+            <Link
+              href="/wishlist"
               aria-label="Wishlist"
               className="text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
             >
               <Heart size={18} strokeWidth={1.5} />
-            </button>
+            </Link>
 
             <Link
               href="/cart"

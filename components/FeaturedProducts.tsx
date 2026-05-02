@@ -5,21 +5,16 @@ import Link from 'next/link'
 import { Heart, ShoppingBag, Gem } from 'lucide-react'
 import { PRODUCTS, inr } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
+import { useWishlistStore } from '@/lib/wishlistStore'
 
 // Pick the 6 most popular products for the homepage
 const FEATURED = [...PRODUCTS].sort((a, b) => b.popularity - a.popularity).slice(0, 6)
 
 export default function FeaturedProducts() {
-  const [wishlisted, setWishlisted]   = useState<Set<number>>(new Set())
-  const [addedIds, setAddedIds]       = useState<Set<number>>(new Set())
-  const addToCart = useCartStore((s) => s.addToCart)
-
-  const toggle = (id: number) =>
-    setWishlisted((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
+  const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
+  const addToCart       = useCartStore((s) => s.addToCart)
+  const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
+  const isWishlisted    = useWishlistStore((s) => s.isWishlisted)
 
   const handleAddToCart = (product: (typeof FEATURED)[number]) => {
     addToCart({
@@ -60,7 +55,7 @@ export default function FeaturedProducts() {
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
           {FEATURED.map((product) => {
-            const isWishlisted = wishlisted.has(product.id)
+            const productWishlisted = isWishlisted(String(product.id))
             const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 
             return (
@@ -77,14 +72,14 @@ export default function FeaturedProducts() {
                       </span>
                     )}
                     <button
-                      onClick={(e) => { e.preventDefault(); toggle(product.id) }}
+                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
                       className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
-                      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                      aria-label={productWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
                       <Heart
                         size={14}
                         strokeWidth={1.5}
-                        className={isWishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
+                        className={productWishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
                       />
                     </button>
                     <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
