@@ -75,8 +75,8 @@ export default function AdminSidebar({ email }: { email: string }) {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/8 space-y-1">
+      {/* Footer — always pinned to bottom */}
+      <div className="px-3 py-4 border-t border-white/8 space-y-1 mt-auto flex-shrink-0">
         <div className="px-3 py-2.5">
           <p className="text-[0.6rem] tracking-[0.2em] uppercase text-white/25 mb-0.5 font-medium">Signed in as</p>
           <p className="text-[0.7rem] text-white/55 font-light truncate">{email}</p>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Send } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 const QUICK_LINKS = [
   { label: 'Home',        href: '/'            },
@@ -54,8 +55,11 @@ const SOCIAL = [
 ]
 
 export default function Footer() {
+  const pathname = usePathname()
   const [email, setEmail]         = useState('')
   const [subscribed, setSubscribed] = useState(false)
+
+  if (pathname?.startsWith('/admin')) return null
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault()
