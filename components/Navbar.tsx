@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package, LogOut, User, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/lib/cartStore'
+import { useWishlistStore } from '@/lib/wishlistStore'
 import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { PRODUCTS, inr } from '@/lib/products'
@@ -75,7 +76,10 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [searchOpen])
 
-  const cartCount   = useCartStore((s) => s.getItemCount())
+  const cartCount      = useCartStore((s) => s.getItemCount())
+  const wishlistItems  = useWishlistStore((s) => s.items)
+  const switchUser     = useWishlistStore((s) => s.switchUser)
+  const wishlistCount  = wishlistItems.length
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // ── Mount + hydration guard ─────────────────────────────────────────────────
@@ -91,15 +95,19 @@ export default function Navbar() {
   // ── Auth session ────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
+      const u = data.session?.user ?? null
+      setUser(u)
+      switchUser(u?.email ?? null)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      switchUser(u?.email ?? null)
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [switchUser])
 
   // ── Close dropdown on outside click ────────────────────────────────────────
   useEffect(() => {
@@ -169,10 +177,15 @@ export default function Navbar() {
 
             <Link
               href="/wishlist"
-              aria-label="Wishlist"
-              className="text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
+              aria-label={`Wishlist${mounted && wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
+              className="relative text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
             >
               <Heart size={18} strokeWidth={1.5} />
+              {mounted && wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#C6973F] text-white text-[0.6rem] font-semibold rounded-full min-w-[1.1rem] h-[1.1rem] flex items-center justify-center px-0.5 leading-none">
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
             </Link>
 
             <Link
