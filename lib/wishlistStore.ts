@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supabase } from '@/lib/supabase'
 
 export interface WishlistItem {
   id:            string
@@ -19,16 +20,12 @@ function loadItems(email: string | null): WishlistItem[] {
   try {
     const raw = localStorage.getItem(storageKey(email))
     return raw ? (JSON.parse(raw) as WishlistItem[]) : []
-  } catch {
-    return []
-  }
+  } catch { return [] }
 }
 
 function saveItems(email: string | null, items: WishlistItem[]) {
   if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(storageKey(email), JSON.stringify(items))
-  } catch { /* quota errors ignored */ }
+  try { localStorage.setItem(storageKey(email), JSON.stringify(items)) } catch { /* quota */ }
 }
 
 // ── Store ───────────────────────────────────────────────────────────────────
@@ -44,45 +41,71 @@ interface WishlistState {
   clearWishlist:      () => void
 }
 
-export const useWishlistStore = create<WishlistState>()((set, get) => ({
-  // Initialise with guest items on first client load (avoids blank-slate flash)
-  items:        loadItems(null),
-  currentEmail: null,
+export const useWishlistStore = create<WishlistState>()((set, get) => {
 
-  switchUser: (email) => {
-    const { currentEmail, items } = get()
-    // Persist whatever the current user had
-    saveItems(currentEmail, items)
-    // Load the new user's wishlist
-    const next = loadItems(email)
-    set({ items: next, currentEmail: email })
-  },
+  // ── Auto-sync with Supabase auth (fires immediately on load) ────────────
+  if (typeof window !== 'undefined') {
+    // Check existing session first
+    supabase.auth.getSession().then(({ data }) => {
+      const email = data.session?.user?.email ?? null
+      const state = get()
+      if (state.currentEmail !== email) {
+        // Save whatever is currently in the store under the old key
+        saveItems(state.currentEmail, state.items)
+        // Load the correct user's items
+        set({ items: loadItems(email), currentEmail: email })
+      }
+    })
 
-  addToWishlist: (item) =>
-    set((state) => {
-      if (state.items.some((i) => i.id === item.id)) return state
-      const next = [...state.items, item]
-      saveItems(state.currentEmail, next)
-      return { items: next }
-    }),
+    // React to future login / logout events
+    supabase.auth.onAuthStateChange((_event, session) => {
+      const email = session?.user?.email ?? null
+      const state = get()
+      if (state.currentEmail !== email) {
+        saveItems(state.currentEmail, state.items)
+        set({ items: loadItems(email), currentEmail: email })
+      }
+    })
+  }
 
-  removeFromWishlist: (id) =>
-    set((state) => {
-      const next = state.items.filter((i) => i.id !== id)
-      saveItems(state.currentEmail, next)
-      return { items: next }
-    }),
+  return {
+    // Initialise with guest items (will be overridden by auth check above)
+    items:        loadItems(null),
+    currentEmail: null,
 
-  toggleWishlist: (item) => {
-    const { items, addToWishlist, removeFromWishlist } = get()
-    if (items.some((i) => i.id === item.id)) {
-      removeFromWishlist(item.id)
-    } else {
-      addToWishlist(item)
-    }
-  },
+    switchUser: (email) => {
+      const state = get()
+      if (state.currentEmail === email) return   // already on this user, no-op
+      saveItems(state.currentEmail, state.items)
+      set({ items: loadItems(email), currentEmail: email })
+    },
 
-  isWishlisted: (id) => get().items.some((i) => i.id === id),
+    addToWishlist: (item) =>
+      set((state) => {
+        if (state.items.some((i) => i.id === item.id)) return state
+        const next = [...state.items, item]
+        saveItems(state.currentEmail, next)
+        return { items: next }
+      }),
 
-  clearWishlist: () => set({ items: [] }),
-}))
+    removeFromWishlist: (id) =>
+      set((state) => {
+        const next = state.items.filter((i) => i.id !== id)
+        saveItems(state.currentEmail, next)
+        return { items: next }
+      }),
+
+    toggleWishlist: (item) => {
+      const { items, addToWishlist, removeFromWishlist } = get()
+      if (items.some((i) => i.id === item.id)) {
+        removeFromWishlist(item.id)
+      } else {
+        addToWishlist(item)
+      }
+    },
+
+    isWishlisted: (id) => get().items.some((i) => i.id === id),
+
+    clearWishlist: () => set({ items: [] }),
+  }
+})
