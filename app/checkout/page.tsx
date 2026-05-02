@@ -180,8 +180,8 @@ export default function CheckoutPage() {
   // ── Cart guard (runs after mount so localStorage is available) ──────────────
   useEffect(() => {
     if (!mounted) return
-    if (items.length === 0) router.replace('/shop')
-  }, [mounted, items.length, router])
+    if (items.length === 0 && !placed) router.replace('/shop')
+  }, [mounted, items.length, placed, router])
 
   // ── Derived totals ──────────────────────────────────────────────────────────
   const deliveryFee = DELIVERY_OPTIONS.find((o) => o.id === delivery)!.fee
@@ -252,8 +252,11 @@ export default function CheckoutPage() {
     })
 
     if (error) {
-      console.error('Order save failed:', error)
-      // Still show success — don't block user on save error
+      console.error('Order save failed:', error.message, error.details, error.hint)
+      setPlacing(false)
+      // Show error to user instead of silently failing
+      alert(`Failed to place order: ${error.message}`)
+      return
     }
 
     clearCart()
