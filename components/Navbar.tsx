@@ -79,6 +79,7 @@ export default function Navbar() {
   }, [searchOpen])
 
   const cartCount      = useCartStore((s) => s.getItemCount())
+  const clearCart      = useCartStore((s) => s.clearCart)
   const wishlistItems  = useWishlistStore((s) => s.items)
   const switchUser     = useWishlistStore((s) => s.switchUser)
   const wishlistCount  = wishlistItems.length
@@ -125,6 +126,7 @@ export default function Navbar() {
   const handleSignOut = () => {
     setDropdown(false)
     setUser(null)
+    clearCart()
     void switchUser(null)
     // Local scope clears session immediately — never wait on a hung network request
     void supabase.auth.signOut({ scope: 'local' })
