@@ -218,6 +218,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
 
 interface FilterPanelProps {
   filters: FilterState
+  products: Product[]
   onCategoryChange: (v: string) => void
   onPriceToggle: (v: string) => void
   onMaterialToggle: (v: string) => void
@@ -228,6 +229,7 @@ interface FilterPanelProps {
 
 function FilterPanel({
   filters,
+  products,
   onCategoryChange,
   onPriceToggle,
   onMaterialToggle,
@@ -236,12 +238,12 @@ function FilterPanel({
   isFiltered,
 }: FilterPanelProps) {
   const catCounts: Record<string, number> = useMemo(() => {
-    const counts: Record<string, number> = { All: PRODUCTS.length }
-    PRODUCTS.forEach((p) => {
+    const counts: Record<string, number> = { All: products.length }
+    products.forEach((p) => {
       counts[p.category] = (counts[p.category] ?? 0) + 1
     })
     return counts
-  }, [])
+  }, [products])
 
   return (
     <div className="space-y-6">
@@ -416,7 +418,8 @@ function FilterPanel({
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function ShopClient() {
+export default function ShopClient({ initialProducts }: { initialProducts?: Product[] } = {}) {
+  const productList = initialProducts && initialProducts.length > 0 ? initialProducts : PRODUCTS
   const searchParams = useSearchParams()
 
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -458,7 +461,7 @@ export default function ShopClient() {
     (filters.rating ? 1 : 0)
 
   const filteredProducts = useMemo(() => {
-    let result = PRODUCTS.filter((p) => {
+    let result = productList.filter((p) => {
       if (filters.category !== 'All' && p.category !== filters.category) return false
       if (
         filters.prices.length > 0 &&
@@ -488,7 +491,7 @@ export default function ShopClient() {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const toggleWishlist = (id: number) => {
-    const p = PRODUCTS.find((prod) => prod.id === id)
+    const p = productList.find((prod) => prod.id === id)
     if (!p) return
     toggleWishlistStore({ id: String(p.id), name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
   }
@@ -511,6 +514,7 @@ export default function ShopClient() {
 
   const filterProps: FilterPanelProps = {
     filters,
+    products:         productList,
     onCategoryChange: (v) => { updateFilters({ category: v }); setCurrentPage(1) },
     onPriceToggle:    (v) => { updateFilters({ prices: toggleArr(filters.prices, v) }); setCurrentPage(1) },
     onMaterialToggle: (v) => { updateFilters({ materials: toggleArr(filters.materials, v) }); setCurrentPage(1) },

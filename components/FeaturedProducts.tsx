@@ -1,22 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, ShoppingBag, Gem } from 'lucide-react'
-import { PRODUCTS, inr } from '@/lib/products'
+import { PRODUCTS, inr, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
+import { supabase } from '@/lib/supabase'
 
-// Pick the 6 most popular products for the homepage
-const FEATURED = [...PRODUCTS].sort((a, b) => b.popularity - a.popularity).slice(0, 6)
+// Local fallback: 6 most popular products
+const LOCAL_FEATURED = [...PRODUCTS].sort((a, b) => b.popularity - a.popularity).slice(0, 6)
+
+function mapDbProduct(row: Record<string, unknown>): Product {
+  return {
+    id:            Number(row.id) || 0,
+    name:          String(row.name ?? ''),
+    category:      String(row.category ?? ''),
+    originalPrice: Number(row.price ?? 0),
+    salePrice:     Number(row.discount_price ?? row.price ?? 0),
+    material:      String(row.material ?? ''),
+    rating:        Number(row.rating ?? 4.0),
+    reviews:       Number(row.reviews ?? 0),
+    popularity:    Number(row.popularity ?? 50),
+    bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
+    label:         row.badge as string | undefined,
+    sku:           String(row.sku ?? ''),
+  }
+}
 
 export default function FeaturedProducts() {
+  const [featured,  setFeatured]  = useState<Product[]>(LOCAL_FEATURED)
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
   const addToCart       = useCartStore((s) => s.addToCart)
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
   const isWishlisted    = useWishlistStore((s) => s.isWishlisted)
 
-  const handleAddToCart = (product: (typeof FEATURED)[number]) => {
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_featured', true)
+      .limit(6)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          setFeatured(data.map(mapDbProduct))
+        }
+      })
+      .catch(() => { /* stay on local fallback */ })
+  }, [])
+
+  const handleAddToCart = (product: Product) => {
     addToCart({
       id:            String(product.id),
       name:          product.name,
@@ -54,7 +87,7 @@ export default function FeaturedProducts() {
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
-          {FEATURED.map((product) => {
+          {featured.map((product) => {
             const productWishlisted = isWishlisted(String(product.id))
             const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 

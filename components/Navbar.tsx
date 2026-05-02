@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package, LogOut, User } from 'lucide-react'
+import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package, LogOut, User, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/lib/cartStore'
 import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { PRODUCTS, inr } from '@/lib/products'
 
 const NAV_LINKS = [
   { href: '/',            label: 'Home'        },
@@ -30,6 +31,49 @@ export default function Navbar() {
   const [mounted, setMounted]         = useState(false)
   const [user, setUser]               = useState<SupabaseUser | null>(null)
   const [dropdownOpen, setDropdown]   = useState(false)
+
+  // Search
+  const [searchOpen,    setSearchOpen]    = useState(false)
+  const [searchQuery,   setSearchQuery]   = useState('')
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  const searchResults = searchQuery.trim().length > 0
+    ? PRODUCTS.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.material.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 6)
+    : []
+
+  const openSearch = useCallback(() => {
+    setSearchOpen(true)
+    setTimeout(() => searchInputRef.current?.focus(), 60)
+  }, [])
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }, [])
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    closeSearch()
+  }
+
+  // Close search on Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSearch() }
+    if (searchOpen) document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [searchOpen, closeSearch])
+
+  // Lock body scroll when search open
+  useEffect(() => {
+    document.body.style.overflow = searchOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [searchOpen])
 
   const cartCount   = useCartStore((s) => s.getItemCount())
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -116,7 +160,8 @@ export default function Navbar() {
           {/* Right-side actions */}
           <div className="flex items-center gap-3 md:gap-4">
             <button
-              aria-label="Search"
+              onClick={openSearch}
+              aria-label="Open search"
               className="text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
             >
               <Search size={18} strokeWidth={1.5} />
@@ -286,6 +331,139 @@ export default function Navbar() {
           )}
         </div>
       </div>
+      {/* ── Search modal ── */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[999] flex flex-col">
+          {/* Backdrop */}
+          <button
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={closeSearch}
+            aria-label="Close search"
+          />
+
+          {/* Modal panel */}
+          <div className="relative z-10 bg-white shadow-2xl mx-4 mt-20 md:mx-auto md:w-full md:max-w-2xl">
+            {/* Input row */}
+            <form onSubmit={handleSearchSubmit} className="flex items-center border-b border-[#1A1A1A]/10">
+              <Search size={18} strokeWidth={1.5} className="ml-5 text-[#C6973F] flex-shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search jewellery…"
+                className="flex-1 px-4 py-4 text-base text-[#1A1A1A] placeholder-[#1A1A1A]/30 focus:outline-none bg-transparent"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mr-2 w-7 h-7 flex items-center justify-center text-[#1A1A1A]/25 hover:text-[#1A1A1A]/60 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X size={15} strokeWidth={1.5} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={closeSearch}
+                className="mr-4 w-8 h-8 flex items-center justify-center text-[#1A1A1A]/30 hover:text-[#1A1A1A]/60 transition-colors border border-[#1A1A1A]/10 hover:border-[#1A1A1A]/20"
+                aria-label="Close"
+              >
+                <X size={14} strokeWidth={1.5} />
+              </button>
+            </form>
+
+            {/* Live results */}
+            {searchQuery.trim() && (
+              <div className="max-h-[60vh] overflow-y-auto">
+                {searchResults.length > 0 ? (
+                  <>
+                    <div className="divide-y divide-[#1A1A1A]/5">
+                      {searchResults.map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`/shop/${p.id}`}
+                          onClick={closeSearch}
+                          className="flex items-center gap-4 px-5 py-3.5 hover:bg-[#FDF6EC] transition-colors group"
+                        >
+                          {/* Colour swatch */}
+                          <div className={`w-10 h-10 flex-shrink-0 ${p.bg} flex items-center justify-center`}>
+                            <span className="text-[#C6973F]/30 text-lg">◈</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[#1A1A1A] group-hover:text-[#C6973F] transition-colors truncate">
+                              {p.name}
+                            </p>
+                            <p className="text-[0.65rem] text-[#1A1A1A]/40 font-light mt-0.5">
+                              {p.category} · {p.material}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-semibold text-[#C6973F]">{inr(p.salePrice)}</p>
+                            {p.label && (
+                              <span className="text-[0.55rem] font-bold tracking-wide bg-[#C6973F]/12 text-[#C6973F] px-1.5 py-0.5 rounded">
+                                {p.label}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    {/* View all results */}
+                    <Link
+                      href={`/search?q=${encodeURIComponent(searchQuery.trim())}`}
+                      onClick={closeSearch}
+                      className="flex items-center justify-center gap-2 py-3.5 bg-[#FAFAF8] border-t border-[#1A1A1A]/6 text-[0.68rem] tracking-[0.18em] uppercase font-medium text-[#C6973F] hover:bg-[#FDF6EC] transition-colors"
+                    >
+                      View all results for &ldquo;{searchQuery}&rdquo;
+                      <ArrowRight size={12} strokeWidth={1.5} />
+                    </Link>
+                  </>
+                ) : (
+                  <div className="px-5 py-10 text-center">
+                    <p className="text-sm text-[#1A1A1A]/35 font-light">
+                      No results for &ldquo;<span className="text-[#1A1A1A]/60 font-medium">{searchQuery}</span>&rdquo;
+                    </p>
+                    <Link
+                      href={`/search?q=${encodeURIComponent(searchQuery.trim())}`}
+                      onClick={closeSearch}
+                      className="inline-flex items-center gap-1.5 mt-3 text-[0.68rem] text-[#C6973F] hover:text-[#b5872e] font-medium transition-colors"
+                    >
+                      Search anyway
+                      <ArrowRight size={11} strokeWidth={1.5} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Empty state hint */}
+            {!searchQuery.trim() && (
+              <div className="px-5 py-6">
+                <p className="text-[0.62rem] tracking-[0.2em] uppercase text-[#1A1A1A]/30 font-semibold mb-3">
+                  Popular Searches
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {['Kundan', 'Rings', 'Pearl', 'Silver', 'Earrings', 'Bridal Set'].map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => setSearchQuery(term)}
+                      className="px-3 py-1.5 border border-[#1A1A1A]/10 text-xs text-[#1A1A1A]/50 hover:border-[#C6973F]/40 hover:text-[#C6973F] transition-all duration-150"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[0.6rem] text-[#1A1A1A]/25 font-light mt-5">
+                  Press <kbd className="px-1.5 py-0.5 bg-[#1A1A1A]/6 rounded text-[0.6rem]">Enter</kbd> to see all results · <kbd className="px-1.5 py-0.5 bg-[#1A1A1A]/6 rounded text-[0.6rem]">Esc</kbd> to close
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   )
 }

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
@@ -29,6 +29,14 @@ export default function LoginPage() {
   const [remember, setRemember]   = useState(false)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
+
+  // Detect password recovery token in URL hash and redirect to reset page
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash.includes('type=recovery')) {
+      router.replace('/auth/reset-password' + hash)
+    }
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

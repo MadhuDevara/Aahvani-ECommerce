@@ -77,17 +77,47 @@ export default function AddProductPage() {
       return { ...f, images: imgs }
     })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [saveError, setSaveError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const errs = validate(form)
     if (Object.keys(errs).length) { setErrors(errs); return }
     setErrors({})
+    setSaveError('')
     setSaving(true)
-    setTimeout(() => {
+
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { error } = await supabase.from('products').insert({
+        name:           form.name.trim(),
+        description:    form.description.trim(),
+        category:       form.category,
+        material:       form.material,
+        price:          Number(form.price),
+        discount_price: form.salePrice ? Number(form.salePrice) : null,
+        stock:          Number(form.stock),
+        is_featured:    form.featured,
+        images:         form.images.filter((img) => img.trim() !== ''),
+      })
+
+      if (error) {
+        console.error('Supabase insert error:', error)
+        setSaveError(error.message)
+        setSaving(false)
+        return
+      }
+
+      // Only show success if insert truly succeeded
       setSaving(false)
       setSuccess(true)
       setTimeout(() => router.push('/admin/products'), 1800)
-    }, 1200)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unexpected error. Check console.'
+      console.error('Supabase error:', err)
+      setSaveError(msg)
+      setSaving(false)
+    }
   }
 
   if (success) {
@@ -268,7 +298,8 @@ export default function AddProductPage() {
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={form.featured}
+                  aria-checked={form.featured ? 'true' : 'false'}
+                  title="Toggle featured"
                   onClick={() => set('featured', !form.featured)}
                   className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${form.featured ? 'bg-[#C6973F]' : 'bg-[#1A1A1A]/15'}`}
                 >
@@ -368,6 +399,12 @@ export default function AddProductPage() {
                   </>
                 ) : 'Save Product'}
               </button>
+              {saveError && (
+                <p className="flex items-start gap-1.5 text-[0.65rem] text-red-500 font-light px-1">
+                  <span className="mt-0.5 flex-shrink-0">⚠</span>
+                  {saveError}
+                </p>
+              )}
               <Link
                 href="/admin/products"
                 className="w-full py-3 border border-[#1A1A1A]/15 text-[#1A1A1A]/50 text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:border-[#1A1A1A]/25 hover:text-[#1A1A1A]/70 transition-all duration-150 flex items-center justify-center"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -11,45 +11,126 @@ import {
   ChevronRight,
   ChevronDown,
   Gem,
+  RefreshCw,
 } from 'lucide-react'
 import { PRODUCTS } from '@/lib/products'
+import { supabase } from '@/lib/supabase'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
 const PAGE_SIZE = 8
 
-const CATEGORIES = ['All', ...Array.from(new Set(PRODUCTS.map((p) => p.category)))]
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
-type AdminProduct = (typeof PRODUCTS)[number] & { stock: number; featured: boolean; active: boolean }
+interface AdminProduct {
+  id:          string | number
+  name:        string
+  category:    string
+  originalPrice: number
+  salePrice:   number
+  material:    string
+  stock:       number
+  featured:    boolean
+  active:      boolean
+  label?:      string
+  sku:         string
+  bg:          string
+}
 
-const ADMIN_PRODUCTS: AdminProduct[] = PRODUCTS.map((p) => ({
+// Fallback local data
+const LOCAL_PRODUCTS: AdminProduct[] = PRODUCTS.map((p) => ({
   ...p,
   stock:    Math.floor(Math.random() * 60) + 5,
   featured: p.popularity > 80,
   active:   true,
 }))
 
+// Map a Supabase row → AdminProduct
+function mapRow(row: Record<string, unknown>): AdminProduct {
+  return {
+    id:            row.id as string,
+    name:          (row.name as string) ?? '',
+    category:      (row.category as string) ?? '',
+    originalPrice: Number(row.price ?? 0),
+    salePrice:     Number(row.discount_price ?? row.price ?? 0),
+    material:      (row.material as string) ?? '',
+    stock:         Number(row.stock ?? 0),
+    featured:      Boolean(row.is_featured),
+    active:        true,
+    label:         (row.badge as string | undefined),
+    sku:           (row.sku as string) ?? '',
+    bg:            'bg-[#F5EBD8]',
+  }
+}
+
+const ALL_CATEGORIES = ['All', ...Array.from(new Set(PRODUCTS.map((p) => p.category)))]
+
 export default function AdminProductsPage() {
-  const [query,    setQuery]    = useState('')
-  const [category, setCategory] = useState('All')
-  const [page,     setPage]     = useState(1)
-  const [deleted,  setDeleted]  = useState<Set<number>>(new Set())
+  const [products,  setProducts]  = useState<AdminProduct[]>(LOCAL_PRODUCTS)
+  const [loading,   setLoading]   = useState(true)
+  const [fromDb,    setFromDb]    = useState(false)
+  const [query,     setQuery]     = useState('')
+  const [category,  setCategory]  = useState('All')
+  const [page,      setPage]      = useState(1)
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!error && data && data.length > 0) {
+        setProducts(data.map(mapRow))
+        setFromDb(true)
+      } else {
+        setProducts(LOCAL_PRODUCTS)
+        setFromDb(false)
+      }
+    } catch {
+      setProducts(LOCAL_PRODUCTS)
+      setFromDb(false)
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchProducts() }, [fetchProducts])
+
+  const categories = fromDb
+    ? ['All', ...Array.from(new Set(products.map((p) => p.category)))]
+    : ALL_CATEGORIES
 
   const filtered = useMemo(() => {
-    return ADMIN_PRODUCTS.filter((p) => {
-      if (deleted.has(p.id)) return false
+    return products.filter((p) => {
       if (category !== 'All' && p.category !== category) return false
       if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false
       return true
     })
-  }, [query, category, deleted])
+  }, [products, query, category])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string | number) => {
     if (!window.confirm('Delete this product?')) return
-    setDeleted((prev) => new Set(prev).add(id))
+    if (fromDb) {
+      const { error } = await supabase.from('products').delete().eq('id', id)
+      if (error) { alert('Failed to delete: ' + error.message); return }
+      fetchProducts()
+    } else {
+      setProducts((prev) => prev.filter((p) => p.id !== id))
+    }
     if (paged.length === 1 && page > 1) setPage((p) => p - 1)
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 bg-[#F7F7F5] min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-[3px] border-[#C6973F]/20 border-t-[#C6973F] rounded-full animate-spin" />
+          <p className="text-xs text-[#1A1A1A]/35 font-light tracking-wide">Loading products…</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -59,17 +140,30 @@ export default function AdminProductsPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">Manage Products</h1>
-          <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light">
+          <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light flex items-center gap-2">
             {filtered.length} product{filtered.length !== 1 ? 's' : ''} total
+            {fromDb
+              ? <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">LIVE DB</span>
+              : <span className="px-1.5 py-0.5 bg-[#1A1A1A]/6 text-[#1A1A1A]/35 border border-[#1A1A1A]/8 text-[0.55rem] font-semibold tracking-wide rounded">LOCAL</span>
+            }
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.15em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150"
-        >
-          <Plus size={14} strokeWidth={2} />
-          Add New Product
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchProducts}
+            className="flex items-center gap-1.5 px-3 py-2.5 border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] text-[0.68rem] transition-all duration-150"
+            aria-label="Refresh products"
+          >
+            <RefreshCw size={13} strokeWidth={1.5} />
+          </button>
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.15em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150"
+          >
+            <Plus size={14} strokeWidth={2} />
+            Add New Product
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -91,7 +185,7 @@ export default function AdminProductsPage() {
             aria-label="Filter by category"
             className="appearance-none pl-4 pr-9 py-2.5 bg-white border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] focus:outline-none focus:border-[#C6973F]/50 transition-colors cursor-pointer"
           >
-            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+            {categories.map((c) => <option key={c}>{c}</option>)}
           </select>
           <ChevronDown size={13} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/30 pointer-events-none" />
         </div>
@@ -197,6 +291,7 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                title="Previous page"
                 className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
               >
                 <ChevronLeft size={13} strokeWidth={1.5} />
@@ -217,6 +312,7 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                title="Next page"
                 className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
               >
                 <ChevronRight size={13} strokeWidth={1.5} />

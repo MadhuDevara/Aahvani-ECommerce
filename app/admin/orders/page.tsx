@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   Search,
   ChevronLeft,
@@ -14,7 +14,9 @@ import {
   X,
   Gem,
   Package,
+  RefreshCw,
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
 const PAGE_SIZE = 8
@@ -239,12 +241,58 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
+function mapDbOrder(row: Record<string, unknown>): Order {
+  return {
+    id:             String(row.id ?? ''),
+    customer:       String(row.customer_name ?? row.customer ?? ''),
+    email:          String(row.customer_email ?? row.email ?? ''),
+    items:          Array.isArray(row.items) ? (row.items as OrderItem[]) : [],
+    total:          Number(row.total ?? 0),
+    status:         (row.status as OrderStatus) ?? 'Processing',
+    date:           row.created_at
+                      ? new Date(row.created_at as string).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : String(row.date ?? ''),
+    address:        String(row.address ?? ''),
+    city:           String(row.city ?? ''),
+    state:          String(row.state ?? ''),
+    pincode:        String(row.pincode ?? ''),
+    deliveryMethod: String(row.delivery_method ?? row.deliveryMethod ?? 'Standard'),
+    paymentMethod:  String(row.payment_method ?? row.paymentMethod ?? ''),
+    estimatedDate:  String(row.estimated_date ?? row.estimatedDate ?? ''),
+  }
+}
+
 export default function AdminOrdersPage() {
   const [tab,     setTab]     = useState<OrderStatus | 'All'>('All')
   const [query,   setQuery]   = useState('')
   const [page,    setPage]    = useState(1)
   const [orders,  setOrders]  = useState<Order[]>(ALL_ORDERS)
+  const [loading, setLoading] = useState(true)
+  const [fromDb,  setFromDb]  = useState(false)
   const [viewing, setViewing] = useState<Order | null>(null)
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!error && data && data.length > 0) {
+        setOrders(data.map(mapDbOrder))
+        setFromDb(true)
+      } else {
+        setOrders(ALL_ORDERS)
+        setFromDb(false)
+      }
+    } catch {
+      setOrders(ALL_ORDERS)
+      setFromDb(false)
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
@@ -262,12 +310,30 @@ export default function AdminOrdersPage() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const updateStatus = (id: string, status: OrderStatus) => {
+  const updateStatus = async (id: string, status: OrderStatus) => {
     setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o))
+    if (fromDb) {
+      try {
+        await supabase.from('orders').update({ status }).eq('id', id)
+      } catch {
+        // status updated locally at minimum
+      }
+    }
   }
 
   const tabCount = (t: OrderStatus | 'All') =>
     t === 'All' ? orders.length : orders.filter((o) => o.status === t).length
+
+  if (loading) {
+    return (
+      <div className="p-8 bg-[#F7F7F5] min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-[3px] border-[#C6973F]/20 border-t-[#C6973F] rounded-full animate-spin" />
+          <p className="text-xs text-[#1A1A1A]/35 font-light tracking-wide">Loading orders…</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 bg-[#F7F7F5] min-h-screen">
@@ -279,13 +345,17 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">Manage Orders</h1>
-          <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light">
+          <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light flex items-center gap-2">
             {filtered.length} order{filtered.length !== 1 ? 's' : ''}
             {tab !== 'All' ? ` · ${tab}` : ''}
+            {fromDb
+              ? <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">LIVE DB</span>
+              : <span className="px-1.5 py-0.5 bg-[#1A1A1A]/6 text-[#1A1A1A]/35 border border-[#1A1A1A]/8 text-[0.55rem] font-semibold tracking-wide rounded">DEMO</span>
+            }
           </p>
         </div>
-        {/* Quick stats */}
-        <div className="flex gap-3 flex-wrap">
+        {/* Quick stats + refresh */}
+        <div className="flex gap-3 flex-wrap items-center">
           {['Processing', 'Shipped', 'Delivered'].map((s) => {
             const count = orders.filter((o) => o.status === s).length
             if (!count) return null
@@ -296,6 +366,13 @@ export default function AdminOrdersPage() {
               </div>
             )
           })}
+          <button
+            onClick={fetchOrders}
+            className="flex items-center gap-1.5 px-3 py-2 border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] text-[0.68rem] transition-all duration-150"
+            aria-label="Refresh orders"
+          >
+            <RefreshCw size={13} strokeWidth={1.5} />
+          </button>
         </div>
       </div>
 
@@ -431,6 +508,7 @@ export default function AdminOrdersPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                title="Previous page"
                 className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
               >
                 <ChevronLeft size={13} strokeWidth={1.5} />
@@ -439,6 +517,7 @@ export default function AdminOrdersPage() {
                 <button
                   key={n}
                   onClick={() => setPage(n)}
+                  title={`Page ${n}`}
                   className={`w-8 h-8 text-[0.7rem] font-medium border transition-all duration-150 ${
                     n === page
                       ? 'bg-[#C6973F] text-white border-[#C6973F]'
@@ -451,6 +530,7 @@ export default function AdminOrdersPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                title="Next page"
                 className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/12 text-[#1A1A1A]/40 hover:border-[#C6973F]/40 hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
               >
                 <ChevronRight size={13} strokeWidth={1.5} />
