@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package, LogOut, User, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
@@ -25,7 +25,9 @@ const DROPDOWN_ITEMS = [
 ]
 
 export default function Navbar() {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
+  const isAdmin  = pathname?.startsWith('/admin') ?? false
 
   const [isScrolled, setIsScrolled]   = useState(false)
   const [mobileOpen, setMobileOpen]   = useState(false)
@@ -124,11 +126,15 @@ export default function Navbar() {
     await supabase.auth.signOut()
     setDropdown(false)
     setUser(null)
-    router.push('/')
+    const onAdminPage = window.location.pathname.startsWith('/admin')
+    router.push(onAdminPage ? '/admin' : '/')
     router.refresh()
   }
 
   const userInitial = user?.email?.[0]?.toUpperCase() ?? '?'
+
+  // Don't render Navbar on admin pages — admin has its own sidebar
+  if (isAdmin) return null
 
   return (
     <header
