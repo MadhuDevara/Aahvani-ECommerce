@@ -45,8 +45,7 @@ export default function FeaturedProducts() {
         if (!error && data && data.length > 0) {
           setFeatured(data.map(mapDbProduct))
         }
-      })
-      .catch(() => { /* stay on local fallback */ })
+      }, () => { /* stay on local fallback */ })
   }, [])
 
   const handleAddToCart = (product: Product) => {
