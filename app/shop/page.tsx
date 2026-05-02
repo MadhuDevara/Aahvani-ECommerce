@@ -4,6 +4,8 @@ import ShopClient from '@/components/ShopClient'
 import { PRODUCTS, type Product } from '@/lib/products'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Shop — Aahvani Jewels',
   description:

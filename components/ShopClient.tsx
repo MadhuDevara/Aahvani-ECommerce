@@ -52,7 +52,6 @@ const SORT_OPTIONS = [
   { value: 'popular',    label: 'Most Popular'         },
 ]
 
-const FAKE_TOTAL = 48
 const PAGE_SIZE  = 12
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -482,9 +481,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
       case 'popular':    return [...result].sort((a, b) => b.popularity - a.popularity)
       default:           return [...result].sort((a, b) => b.id - a.id)
     }
-  }, [filters, sortBy])
+  }, [filters, sortBy, productList])
 
-  const totalCount  = isFiltered ? filteredProducts.length : FAKE_TOTAL
+  const totalCount  = filteredProducts.length
   const totalPages  = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const safePage    = Math.min(currentPage, totalPages)
 
