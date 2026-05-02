@@ -146,7 +146,7 @@ function McIcon() {
 
 export default function CheckoutPage() {
   const router  = useRouter()
-  const { items, getTotal } = useCartStore()
+  const { items, getTotal, clearCart } = useCartStore()
 
   const [mounted,   setMounted]   = useState(false)
   const [authReady, setAuthReady] = useState(false)
@@ -218,8 +218,45 @@ export default function CheckoutPage() {
     e.preventDefault()
     if (!validate()) return
     setPlacing(true)
-    // Simulate payment processing delay
-    await new Promise((r) => setTimeout(r, 1800))
+
+    const deliveryOption = DELIVERY_OPTIONS.find((o) => o.id === delivery)!
+    const estimatedDays  = delivery === 'express' ? 3 : 7
+    const estimatedDate  = new Date(Date.now() + estimatedDays * 86400000)
+      .toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+
+    const orderNumber = `AHV-${Date.now().toString().slice(-8)}`
+
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData.session?.user.id ?? null
+
+    const { error } = await supabase.from('orders').insert({
+      order_number:    orderNumber,
+      user_id:         userId,
+      user_email:      form.email.trim(),
+      items:           items.map((i) => ({
+        name:     i.name,
+        size:     i.size,
+        quantity: i.quantity,
+        price:    i.price,
+        bg:       i.bg,
+      })),
+      total:           total,
+      status:          'Processing',
+      address:         `${form.addr1}${form.addr2 ? ', ' + form.addr2 : ''}`,
+      city:            form.city,
+      state:           form.state,
+      pincode:         form.pincode,
+      delivery_method: deliveryOption.label,
+      payment_method:  'Online Payment',
+      estimated_date:  estimatedDate,
+    })
+
+    if (error) {
+      console.error('Order save failed:', error)
+      // Still show success — don't block user on save error
+    }
+
+    clearCart()
     setPlacing(false)
     setPlaced(true)
   }

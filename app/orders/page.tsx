@@ -66,84 +66,6 @@ interface Order {
 
 // ─── Dummy data ────────────────────────────────────────────────────────────────
 
-const ORDERS: Order[] = [
-  {
-    id:             'AHV-2024-001',
-    date:           '28 Apr 2026',
-    status:         'Delivered',
-    total:          8998,
-    address:        '42, Patel Nagar, Near City Mall',
-    city:           'Mumbai',
-    state:          'Maharashtra',
-    pincode:        '400001',
-    deliveryMethod: 'Standard Delivery',
-    paymentMethod:  'UPI (Google Pay)',
-    estimatedDate:  '3 May 2026',
-    trackingNumber: 'AHV1234567890IN',
-    items: [
-      { name: 'Temple Necklace Set',  size: '18"',       quantity: 1, price: 5499, bg: 'bg-[#F9F0E3]' },
-      { name: 'Jadau Bangle Pair',    size: 'Free Size', quantity: 1, price: 3499, bg: 'bg-[#EDE4D5]' },
-    ],
-    tracking: [
-      { label: 'Order Placed',        time: '28 Apr, 10:32 AM', completed: true,  current: false },
-      { label: 'Payment Confirmed',   time: '28 Apr, 10:35 AM', completed: true,  current: false },
-      { label: 'Processing',          time: '28 Apr, 02:00 PM', completed: true,  current: false },
-      { label: 'Shipped',             time: '29 Apr, 09:15 AM', completed: true,  current: false },
-      { label: 'Out for Delivery',    time: '3 May, 08:00 AM',  completed: true,  current: false },
-      { label: 'Delivered',           time: '3 May, 01:42 PM',  completed: true,  current: false },
-    ],
-  },
-  {
-    id:             'AHV-2024-002',
-    date:           '1 May 2026',
-    status:         'Shipped',
-    total:          3499,
-    address:        '17-B, Lajpat Nagar III',
-    city:           'New Delhi',
-    state:          'Delhi',
-    pincode:        '110024',
-    deliveryMethod: 'Express Delivery',
-    paymentMethod:  'Visa Card ending 4242',
-    estimatedDate:  '4 May 2026',
-    trackingNumber: 'AHV9876543210IN',
-    items: [
-      { name: 'Kundan Polki Ring',    size: 'M (6)',      quantity: 1, price: 3499, bg: 'bg-[#F5EBD8]' },
-    ],
-    tracking: [
-      { label: 'Order Placed',        time: '1 May, 03:15 PM',  completed: true,  current: false },
-      { label: 'Payment Confirmed',   time: '1 May, 03:17 PM',  completed: true,  current: false },
-      { label: 'Processing',          time: '1 May, 06:00 PM',  completed: true,  current: false },
-      { label: 'Shipped',             time: '2 May, 10:30 AM',  completed: true,  current: true  },
-      { label: 'Out for Delivery',    time: null,               completed: false, current: false },
-      { label: 'Delivered',           time: null,               completed: false, current: false },
-    ],
-  },
-  {
-    id:             'AHV-2024-003',
-    date:           '2 May 2026',
-    status:         'Processing',
-    total:          1799,
-    address:        '5, Koramangala 4th Block',
-    city:           'Bangalore',
-    state:          'Karnataka',
-    pincode:        '560034',
-    deliveryMethod: 'Standard Delivery',
-    paymentMethod:  'Mastercard ending 8888',
-    estimatedDate:  '8 May 2026',
-    trackingNumber: null,
-    items: [
-      { name: 'Meenakari Jhumka',     size: 'Free Size',  quantity: 1, price: 1799, bg: 'bg-[#EFE0C9]' },
-    ],
-    tracking: [
-      { label: 'Order Placed',        time: '2 May, 11:00 AM',  completed: true,  current: false },
-      { label: 'Payment Confirmed',   time: '2 May, 11:02 AM',  completed: true,  current: false },
-      { label: 'Processing',          time: null,               completed: false, current: true  },
-      { label: 'Shipped',             time: null,               completed: false, current: false },
-      { label: 'Out for Delivery',    time: null,               completed: false, current: false },
-      { label: 'Delivered',           time: null,               completed: false, current: false },
-    ],
-  },
-]
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -415,26 +337,72 @@ function StatCard({
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
+function mapDbOrder(row: Record<string, unknown>): Order {
+  const items = Array.isArray(row.items) ? row.items as OrderItem[] : []
+  const status = (row.status as OrderStatus) ?? 'Processing'
+
+  const statusSteps: Record<OrderStatus, number> = { Processing: 2, Shipped: 3, Delivered: 5, Cancelled: 0 }
+  const doneUntil = statusSteps[status] ?? 2
+  const stepLabels = ['Order Placed', 'Payment Confirmed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered']
+
+  const tracking: TrackingStep[] = stepLabels.map((label, i) => ({
+    label,
+    time:      i < doneUntil ? (row.created_at ? new Date(row.created_at as string).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null) : null,
+    completed: i < doneUntil,
+    current:   i === doneUntil,
+  }))
+
+  return {
+    id:             (row.order_number as string) ?? String(row.id),
+    date:           row.created_at ? new Date(row.created_at as string).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+    status,
+    total:          Number(row.total ?? 0),
+    address:        String(row.address ?? ''),
+    city:           String(row.city ?? ''),
+    state:          String(row.state ?? ''),
+    pincode:        String(row.pincode ?? ''),
+    deliveryMethod: String(row.delivery_method ?? 'Standard Delivery'),
+    paymentMethod:  String(row.payment_method ?? ''),
+    estimatedDate:  String(row.estimated_date ?? ''),
+    trackingNumber: null,
+    items,
+    tracking,
+  }
+}
+
 export default function OrdersPage() {
   const router = useRouter()
   const [mounted,   setMounted]   = useState(false)
-  const [authReady, setAuthReady] = useState(false)
   const [userEmail, setUserEmail] = useState('')
+  const [orders,    setOrders]    = useState<Order[]>([])
+  const [loading,   setLoading]   = useState(true)
 
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    if (!mounted) return
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
         router.replace('/auth/login')
         return
       }
-      setUserEmail(data.session.user.email ?? '')
-      setAuthReady(true)
-    })
-  }, [router])
+      const email = data.session.user.email ?? ''
+      setUserEmail(email)
 
-  if (!mounted || !authReady) {
+      const { data: rows, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_email', email)
+        .order('created_at', { ascending: false })
+
+      if (!error && rows) {
+        setOrders(rows.map(mapDbOrder))
+      }
+      setLoading(false)
+    })
+  }, [mounted, router])
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
         <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
@@ -442,9 +410,16 @@ export default function OrdersPage() {
     )
   }
 
-  const totalSpent    = ORDERS.reduce((s, o) => s + o.total, 0)
-  const favouriteCat  = 'Necklaces'
-  const showEmpty     = false // flip to true to preview empty state
+  const totalSpent   = orders.reduce((s, o) => s + o.total, 0)
+  const showEmpty    = orders.length === 0
+
+  const favouriteCat = (() => {
+    const counts: Record<string, number> = {}
+    orders.forEach((o) => o.items.forEach((i) => {
+      counts[i.name] = (counts[i.name] ?? 0) + 1
+    }))
+    return Object.keys(counts).length > 0 ? Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] : '—'
+  })()
 
   return (
     <div className="min-h-screen bg-[#FDF6EC]">
@@ -502,8 +477,8 @@ export default function OrdersPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatCard
                 label="Total Orders"
-                value={String(ORDERS.length)}
-                sub={`${ORDERS.filter((o) => o.status === 'Delivered').length} delivered`}
+                value={String(orders.length)}
+                sub={`${orders.filter((o) => o.status === 'Delivered').length} delivered`}
                 Icon={Package as never}
                 accent="bg-[#C6973F]/12 text-[#C6973F]"
               />
@@ -530,7 +505,7 @@ export default function OrdersPage() {
                   Order History
                 </h2>
                 <span className="text-[0.65rem] font-semibold px-2.5 py-1 bg-[#C6973F]/12 text-[#C6973F] rounded-full">
-                  {ORDERS.length}
+                  {orders.length}
                 </span>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -547,7 +522,7 @@ export default function OrdersPage() {
 
             {/* ── Order cards ── */}
             <div className="space-y-5">
-              {ORDERS.map((order) => (
+              {orders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
             </div>
