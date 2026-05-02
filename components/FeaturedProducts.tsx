@@ -24,7 +24,7 @@ function mapDbProduct(row: Record<string, unknown>): Product {
     popularity:    Number(row.popularity ?? 50),
     bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
     label:         row.badge as string | undefined,
-    sku:           String(row.sku ?? ''),
+    sku:           String(row.sku || row.id || ''),
   }
 }
 
@@ -87,7 +87,7 @@ export default function FeaturedProducts() {
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
           {featured.map((product) => {
-            const productWishlisted = isWishlisted(String(product.id))
+            const productWishlisted = isWishlisted(product.sku || String(product.id))
             const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 
             return (
@@ -104,7 +104,7 @@ export default function FeaturedProducts() {
                       </span>
                     )}
                     <button
-                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
+                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
                       className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
                       aria-label={productWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                     >

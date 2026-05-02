@@ -84,7 +84,7 @@ function WhatsAppIcon() {
 function RelatedCard({ product }: { product: Product }) {
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist)
   const isWishlisted   = useWishlistStore((s) => s.isWishlisted)
-  const wishlisted     = isWishlisted(String(product.id))
+  const wishlisted     = isWishlisted(product.sku || String(product.id))
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
   return (
     <div className="group bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
@@ -96,7 +96,7 @@ function RelatedCard({ product }: { product: Product }) {
             </span>
           )}
           <button
-            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
+            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
             className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
@@ -141,7 +141,7 @@ export default function ProductDetailClient({ productId }: { productId: string }
   const [activeTab, setActiveTab]         = useState('Description')
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
   const isWishlistedFn  = useWishlistStore((s) => s.isWishlisted)
-  const isWishlisted    = isWishlistedFn(String(product.id))
+  const isWishlisted    = isWishlistedFn(product.sku || String(product.id))
   const [copied, setCopied]               = useState(false)
   const [addedToCart, setAddedToCart]     = useState(false)
   const [sizeError, setSizeError]         = useState(false)
@@ -170,7 +170,7 @@ export default function ProductDetailClient({ productId }: { productId: string }
     }
     setSizeError(false)
     addToCart({
-      id:            String(product.id),
+      id:            product.sku || String(product.id),
       name:          product.name,
       price:         product.salePrice,
       originalPrice: product.originalPrice,
@@ -386,7 +386,7 @@ export default function ProductDetailClient({ productId }: { productId: string }
                 )}
               </button>
               <button
-                onClick={() => toggleWishlist({ id: String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg })}
+                onClick={() => toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg })}
                 className={`flex-1 sm:flex-none sm:px-6 flex items-center justify-center gap-2 py-4 border text-[0.72rem] tracking-[0.2em] uppercase font-medium transition-all duration-200 ${
                   isWishlisted
                     ? 'bg-[#C6973F]/10 border-[#C6973F] text-[#C6973F]'

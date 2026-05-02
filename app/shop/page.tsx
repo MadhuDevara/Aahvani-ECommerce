@@ -25,7 +25,7 @@ function mapDbProduct(row: Record<string, unknown>): Product {
     popularity:    Number(row.popularity ?? 50),
     bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
     label:         row.badge as string | undefined,
-    sku:           String(row.sku ?? ''),
+    sku:           String(row.sku || row.id || ''),
   }
 }
 

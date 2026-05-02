@@ -85,7 +85,7 @@ function StarRating({ value }: { value: number }) {
 interface ProductCardProps {
   product: Product
   isWishlisted: boolean
-  onToggleWishlist: (id: number) => void
+  onToggleWishlist: (product: Product) => void
   listView?: boolean
 }
 
@@ -129,7 +129,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
                 {product.name}
               </h3>
               <button
-                onClick={() => onToggleWishlist(product.id)}
+                onClick={() => onToggleWishlist(product)}
                 className="flex-shrink-0 w-7 h-7 flex items-center justify-center hover:text-[#C6973F] transition-colors duration-200"
                 aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
               >
@@ -173,7 +173,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
           </span>
         )}
         <button
-          onClick={() => onToggleWishlist(product.id)}
+          onClick={() => onToggleWishlist(product)}
           className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
@@ -489,10 +489,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const toggleWishlist = (id: number) => {
-    const p = productList.find((prod) => prod.id === id)
-    if (!p) return
-    toggleWishlistStore({ id: String(p.id), name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
+  const toggleWishlist = (p: Product) => {
+    const key = p.sku || String(p.id)
+    toggleWishlistStore({ id: key, name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
   }
 
   const updateFilters = (patch: Partial<FilterState>) =>
@@ -706,9 +705,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
                 {filteredProducts.map((p) => (
                   <ProductCard
-                    key={p.id}
+                    key={p.sku || p.id}
                     product={p}
-                    isWishlisted={isWishlistedStore(String(p.id))}
+                    isWishlisted={isWishlistedStore(p.sku || String(p.id))}
                     onToggleWishlist={toggleWishlist}
                   />
                 ))}
@@ -717,9 +716,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
               <div className="flex flex-col gap-3">
                 {filteredProducts.map((p) => (
                   <ProductCard
-                    key={p.id}
+                    key={p.sku || p.id}
                     product={p}
-                    isWishlisted={isWishlistedStore(String(p.id))}
+                    isWishlisted={isWishlistedStore(p.sku || String(p.id))}
                     onToggleWishlist={toggleWishlist}
                     listView
                   />
