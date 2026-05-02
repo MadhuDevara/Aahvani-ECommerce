@@ -28,6 +28,27 @@ function saveItems(email: string | null, items: WishlistItem[]) {
   try { localStorage.setItem(storageKey(email), JSON.stringify(items)) } catch { /* quota */ }
 }
 
+/**
+ * Read the currently logged-in user's email SYNCHRONOUSLY from Supabase's
+ * own localStorage entry. This avoids the async getSession() race condition
+ * where addToWishlist fires before getSession resolves, saving under the
+ * guest key instead of the user key.
+ */
+function getEmailSync(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key.includes('-auth-token')) {
+        const raw = localStorage.getItem(key)
+        if (!raw) continue
+        const data = JSON.parse(raw) as { user?: { email?: string } }
+        return data?.user?.email ?? null
+      }
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
 // ── Store ───────────────────────────────────────────────────────────────────
 
 interface WishlistState {
@@ -41,23 +62,13 @@ interface WishlistState {
   clearWishlist:      () => void
 }
 
+// Read user email synchronously so the store starts with the right key
+const initialEmail = getEmailSync()
+
 export const useWishlistStore = create<WishlistState>()((set, get) => {
 
-  // ── Auto-sync with Supabase auth (fires immediately on load) ────────────
+  // ── Auto-sync with Supabase auth for future login / logout events ─────────
   if (typeof window !== 'undefined') {
-    // Check existing session first
-    supabase.auth.getSession().then(({ data }) => {
-      const email = data.session?.user?.email ?? null
-      const state = get()
-      if (state.currentEmail !== email) {
-        // Save whatever is currently in the store under the old key
-        saveItems(state.currentEmail, state.items)
-        // Load the correct user's items
-        set({ items: loadItems(email), currentEmail: email })
-      }
-    })
-
-    // React to future login / logout events
     supabase.auth.onAuthStateChange((_event, session) => {
       const email = session?.user?.email ?? null
       const state = get()
@@ -69,13 +80,13 @@ export const useWishlistStore = create<WishlistState>()((set, get) => {
   }
 
   return {
-    // Initialise with guest items (will be overridden by auth check above)
-    items:        loadItems(null),
-    currentEmail: null,
+    // Initialise with the correct user's items immediately (no async delay)
+    items:        loadItems(initialEmail),
+    currentEmail: initialEmail,
 
     switchUser: (email) => {
       const state = get()
-      if (state.currentEmail === email) return   // already on this user, no-op
+      if (state.currentEmail === email) return
       saveItems(state.currentEmail, state.items)
       set({ items: loadItems(email), currentEmail: email })
     },
