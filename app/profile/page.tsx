@@ -99,7 +99,6 @@ const INDIAN_STATES = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chh
 export default function ProfilePage() {
   const router = useRouter()
   const [mounted,   setMounted]   = useState(false)
-  const [authReady, setAuthReady] = useState(false)
   const [user,      setUser]      = useState<User | null>(null)
 
   // Personal info
@@ -177,7 +176,6 @@ export default function ProfilePage() {
         if (derived.length > 0) setAddresses(derived)
       }
 
-      setAuthReady(true)
     })
   }, [router])
 
@@ -235,13 +233,8 @@ export default function ProfilePage() {
     setShowAddForm(true)
   }
 
-  if (!mounted || !authReady) {
-    return (
-      <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
-        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
-      </div>
-    )
-  }
+  // Only block on hydration — never on async auth/data fetches
+  if (!mounted) return null
 
   const initial = (name || user?.email || '?')[0].toUpperCase()
 

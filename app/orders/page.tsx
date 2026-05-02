@@ -402,13 +402,8 @@ export default function OrdersPage() {
     })
   }, [mounted, router])
 
-  if (!mounted || loading) {
-    return (
-      <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
-        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
-      </div>
-    )
-  }
+  // Only block on hydration — never on async data fetches
+  if (!mounted) return null
 
   const totalSpent   = orders.reduce((s, o) => s + o.total, 0)
   const showEmpty    = orders.length === 0
@@ -443,7 +438,12 @@ export default function OrdersPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
 
-        {showEmpty ? (
+        {loading ? (
+          /* ── Inline loading skeleton ── */
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+          </div>
+        ) : showEmpty ? (
           /* ── Empty state ── */
           <div className="flex items-center justify-center min-h-[40vh]">
             <div className="text-center max-w-sm">
