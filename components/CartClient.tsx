@@ -36,76 +36,107 @@ function CartItemRow({ item }: { item: CartItem }) {
   const discount  = Math.round((1 - item.price / item.originalPrice) * 100)
 
   return (
-    <div className="flex gap-4 py-6 first:pt-0">
-      {/* Image placeholder */}
-      <div className={`w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 ${item.bg} relative overflow-hidden`}>
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.15]" aria-hidden="true">
-          <Gem size={38} strokeWidth={0.8} className="text-[#C6973F]" />
+    <article className="rounded-2xl border border-[#C6973F]/18 bg-white shadow-[0_4px_28px_rgba(198,151,63,0.08)] p-5 sm:p-6 overflow-visible">
+      <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
+        {/* Image placeholder */}
+        <div
+          className={`mx-auto sm:mx-0 w-full max-w-[220px] aspect-square sm:max-w-none sm:w-32 sm:h-32 sm:flex-shrink-0 ${item.bg} relative overflow-hidden rounded-lg`}
+        >
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.15]" aria-hidden="true">
+            <Gem size={44} strokeWidth={0.8} className="text-[#C6973F]" />
+          </div>
         </div>
-      </div>
 
-      {/* Details */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="font-serif text-sm font-medium text-[#1A1A1A] leading-snug mb-1 truncate pr-2">
-              {item.name}
-            </h3>
-            <p className="text-[0.62rem] text-[#1A1A1A]/40 tracking-wide font-light">
-              Size: <span className="text-[#1A1A1A]/60">{item.size}</span>
-              <span className="mx-1.5 text-[#1A1A1A]/20">|</span>
-              {item.category}
-            </p>
-            <p className="text-[0.68rem] text-[#C6973F] font-semibold mt-1">
-              {inr(item.price)}
-              {discount > 0 && (
-                <span className="ml-2 text-[#1A1A1A]/30 text-[0.6rem] font-normal line-through">
-                  {inr(item.originalPrice)}
+        {/* Details */}
+        <div className="flex-1 min-w-0 flex flex-col gap-5 overflow-visible">
+          <div className="flex items-start justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1 space-y-2">
+              <h3 className="font-serif text-base sm:text-[1.05rem] font-medium text-[#1A1A1A] leading-snug break-words">
+                {item.name}
+              </h3>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-[#1A1A1A]/45 tracking-wide font-light">
+                <span>
+                  Size{' '}
+                  <span className="text-[#1A1A1A]/75 font-normal">{item.size}</span>
                 </span>
-              )}
-            </p>
+                <span className="text-[#C6973F]/40 hidden sm:inline" aria-hidden="true">
+                  •
+                </span>
+                <span>
+                  Category{' '}
+                  <span className="text-[#1A1A1A]/75 font-normal">{item.category}</span>
+                </span>
+              </div>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-1">
+                <span className="text-lg font-semibold text-[#C6973F] tabular-nums">{inr(item.price)}</span>
+                {discount > 0 && (
+                  <span className="text-sm text-[#1A1A1A]/35 line-through tabular-nums">
+                    {inr(item.originalPrice)}
+                  </span>
+                )}
+                {discount > 0 && (
+                  <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-emerald-600 bg-emerald-50 px-2 py-0.5">
+                    Save {discount}%
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeFromCart(item.id, item.size)}
+              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[#1A1A1A]/30 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all duration-150"
+              aria-label={`Remove ${item.name}`}
+            >
+              <Trash2 size={16} strokeWidth={1.5} />
+            </button>
           </div>
-          {/* Remove */}
-          <button
-            onClick={() => removeFromCart(item.id, item.size)}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center text-[#1A1A1A]/25 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
-            aria-label={`Remove ${item.name}`}
-          >
-            <Trash2 size={14} strokeWidth={1.5} />
-          </button>
-        </div>
 
-        {/* Quantity + Line total */}
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-0">
-            <button
-              onClick={() => {
-                if (item.quantity <= 1) removeFromCart(item.id, item.size)
-                else updateQuantity(item.id, item.size, item.quantity - 1)
-              }}
-              className="w-7 h-7 flex items-center justify-center border border-[#1A1A1A]/15 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] transition-colors duration-150"
-              aria-label="Decrease quantity"
-            >
-              <Minus size={11} strokeWidth={1.5} />
-            </button>
-            <span className="w-9 h-7 flex items-center justify-center border-y border-[#1A1A1A]/15 text-xs font-medium text-[#1A1A1A] select-none">
-              {item.quantity}
-            </span>
-            <button
-              onClick={() => {
-                if (item.quantity < 10) updateQuantity(item.id, item.size, item.quantity + 1)
-              }}
-              disabled={item.quantity >= 10}
-              className="w-7 h-7 flex items-center justify-center border border-[#1A1A1A]/15 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
-              aria-label="Increase quantity"
-            >
-              <Plus size={11} strokeWidth={1.5} />
-            </button>
+          {/* Quantity row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-[#1A1A1A]/08">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[0.65rem] tracking-[0.2em] uppercase text-[#1A1A1A]/45 font-medium whitespace-nowrap">
+                Quantity
+              </span>
+              <div className="inline-flex flex-shrink-0 items-stretch rounded-lg overflow-hidden border border-[#1A1A1A]/12 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (item.quantity <= 1) removeFromCart(item.id, item.size)
+                    else updateQuantity(item.id, item.size, item.quantity - 1)
+                  }}
+                  className="w-10 h-10 flex items-center justify-center bg-[#FDF6EC] text-[#1A1A1A]/55 hover:bg-[#C6973F]/15 hover:text-[#C6973F] transition-colors duration-150"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus size={14} strokeWidth={1.5} />
+                </button>
+                <span className="min-w-[3rem] px-2 flex items-center justify-center border-x border-[#1A1A1A]/12 bg-white text-sm font-semibold text-[#1A1A1A] select-none tabular-nums">
+                  {item.quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (item.quantity < 10) updateQuantity(item.id, item.size, item.quantity + 1)
+                  }}
+                  disabled={item.quantity >= 10}
+                  className="w-10 h-10 flex items-center justify-center bg-[#FDF6EC] text-[#1A1A1A]/55 hover:bg-[#C6973F]/15 hover:text-[#C6973F] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-150"
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={14} strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-col items-start sm:items-end gap-0.5 sm:min-w-[7rem]">
+              <span className="text-[0.62rem] tracking-[0.18em] uppercase text-[#1A1A1A]/35 font-medium">
+                Line total
+              </span>
+              <p className="text-xl font-serif font-semibold text-[#C6973F] tabular-nums whitespace-nowrap">
+                {inr(lineTotal)}
+              </p>
+            </div>
           </div>
-          <p className="text-sm font-semibold text-[#1A1A1A]">{inr(lineTotal)}</p>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -211,7 +242,7 @@ export default function CartClient() {
 
           {/* ── LEFT — Cart items ──────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
-            <div className="bg-white divide-y divide-[#1A1A1A]/6 px-5 sm:px-7">
+            <div className="flex flex-col gap-5 overflow-visible">
               {items.map((item) => (
                 <CartItemRow key={`${item.id}-${item.size}`} item={item} />
               ))}

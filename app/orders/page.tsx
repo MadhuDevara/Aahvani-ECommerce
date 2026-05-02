@@ -1,0 +1,559 @@
+'use client'
+
+export const dynamic = 'force-dynamic'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  ShoppingBag,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  CreditCard,
+  Calendar,
+  Truck,
+  Package,
+  PackageCheck,
+  PackageX,
+  Clock,
+  CheckCircle2,
+  Circle,
+  Copy,
+  Check,
+  Star,
+  TrendingUp,
+  Gem,
+} from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+type OrderStatus = 'Delivered' | 'Shipped' | 'Processing' | 'Cancelled'
+
+interface OrderItem {
+  name:     string
+  size:     string
+  quantity: number
+  price:    number
+  bg:       string
+}
+
+interface TrackingStep {
+  label:     string
+  time:      string | null
+  completed: boolean
+  current:   boolean
+}
+
+interface Order {
+  id:             string
+  date:           string
+  status:         OrderStatus
+  items:          OrderItem[]
+  total:          number
+  address:        string
+  city:           string
+  state:          string
+  pincode:        string
+  deliveryMethod: string
+  paymentMethod:  string
+  estimatedDate:  string
+  trackingNumber: string | null
+  tracking:       TrackingStep[]
+}
+
+// ─── Dummy data ────────────────────────────────────────────────────────────────
+
+const ORDERS: Order[] = [
+  {
+    id:             'AHV-2024-001',
+    date:           '28 Apr 2026',
+    status:         'Delivered',
+    total:          8998,
+    address:        '42, Patel Nagar, Near City Mall',
+    city:           'Mumbai',
+    state:          'Maharashtra',
+    pincode:        '400001',
+    deliveryMethod: 'Standard Delivery',
+    paymentMethod:  'UPI (Google Pay)',
+    estimatedDate:  '3 May 2026',
+    trackingNumber: 'AHV1234567890IN',
+    items: [
+      { name: 'Temple Necklace Set',  size: '18"',       quantity: 1, price: 5499, bg: 'bg-[#F9F0E3]' },
+      { name: 'Jadau Bangle Pair',    size: 'Free Size', quantity: 1, price: 3499, bg: 'bg-[#EDE4D5]' },
+    ],
+    tracking: [
+      { label: 'Order Placed',        time: '28 Apr, 10:32 AM', completed: true,  current: false },
+      { label: 'Payment Confirmed',   time: '28 Apr, 10:35 AM', completed: true,  current: false },
+      { label: 'Processing',          time: '28 Apr, 02:00 PM', completed: true,  current: false },
+      { label: 'Shipped',             time: '29 Apr, 09:15 AM', completed: true,  current: false },
+      { label: 'Out for Delivery',    time: '3 May, 08:00 AM',  completed: true,  current: false },
+      { label: 'Delivered',           time: '3 May, 01:42 PM',  completed: true,  current: false },
+    ],
+  },
+  {
+    id:             'AHV-2024-002',
+    date:           '1 May 2026',
+    status:         'Shipped',
+    total:          3499,
+    address:        '17-B, Lajpat Nagar III',
+    city:           'New Delhi',
+    state:          'Delhi',
+    pincode:        '110024',
+    deliveryMethod: 'Express Delivery',
+    paymentMethod:  'Visa Card ending 4242',
+    estimatedDate:  '4 May 2026',
+    trackingNumber: 'AHV9876543210IN',
+    items: [
+      { name: 'Kundan Polki Ring',    size: 'M (6)',      quantity: 1, price: 3499, bg: 'bg-[#F5EBD8]' },
+    ],
+    tracking: [
+      { label: 'Order Placed',        time: '1 May, 03:15 PM',  completed: true,  current: false },
+      { label: 'Payment Confirmed',   time: '1 May, 03:17 PM',  completed: true,  current: false },
+      { label: 'Processing',          time: '1 May, 06:00 PM',  completed: true,  current: false },
+      { label: 'Shipped',             time: '2 May, 10:30 AM',  completed: true,  current: true  },
+      { label: 'Out for Delivery',    time: null,               completed: false, current: false },
+      { label: 'Delivered',           time: null,               completed: false, current: false },
+    ],
+  },
+  {
+    id:             'AHV-2024-003',
+    date:           '2 May 2026',
+    status:         'Processing',
+    total:          1799,
+    address:        '5, Koramangala 4th Block',
+    city:           'Bangalore',
+    state:          'Karnataka',
+    pincode:        '560034',
+    deliveryMethod: 'Standard Delivery',
+    paymentMethod:  'Mastercard ending 8888',
+    estimatedDate:  '8 May 2026',
+    trackingNumber: null,
+    items: [
+      { name: 'Meenakari Jhumka',     size: 'Free Size',  quantity: 1, price: 1799, bg: 'bg-[#EFE0C9]' },
+    ],
+    tracking: [
+      { label: 'Order Placed',        time: '2 May, 11:00 AM',  completed: true,  current: false },
+      { label: 'Payment Confirmed',   time: '2 May, 11:02 AM',  completed: true,  current: false },
+      { label: 'Processing',          time: null,               completed: false, current: true  },
+      { label: 'Shipped',             time: null,               completed: false, current: false },
+      { label: 'Out for Delivery',    time: null,               completed: false, current: false },
+      { label: 'Delivered',           time: null,               completed: false, current: false },
+    ],
+  },
+]
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
+
+// ─── Status config ─────────────────────────────────────────────────────────────
+
+const STATUS_CONFIG: Record<OrderStatus, {
+  badge:    string
+  Icon:     React.FC<React.SVGProps<SVGSVGElement> & { size?: number; strokeWidth?: number }>
+  dot:      string
+}> = {
+  Delivered:  { badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200',  Icon: PackageCheck as never, dot: 'bg-emerald-500'  },
+  Shipped:    { badge: 'bg-blue-50 text-blue-700 border border-blue-200',           Icon: Truck        as never, dot: 'bg-blue-500'     },
+  Processing: { badge: 'bg-[#C6973F]/12 text-[#C6973F] border border-[#C6973F]/30',Icon: Clock        as never, dot: 'bg-[#C6973F]'   },
+  Cancelled:  { badge: 'bg-red-50 text-red-600 border border-red-200',             Icon: PackageX     as never, dot: 'bg-red-500'     },
+}
+
+// ─── Tracking timeline ─────────────────────────────────────────────────────────
+
+function TrackingTimeline({ steps, trackingNumber }: { steps: TrackingStep[]; trackingNumber: string | null }) {
+  const [copied, setCopied] = useState(false)
+
+  const copyTracking = () => {
+    if (!trackingNumber) return
+    navigator.clipboard.writeText(trackingNumber)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="mt-2">
+      {trackingNumber && (
+        <div className="flex items-center gap-2 mb-5 px-3 py-2.5 bg-[#FDF6EC] border border-[#C6973F]/20">
+          <Truck size={13} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0" />
+          <span className="text-[0.68rem] text-[#1A1A1A]/55 font-light">Tracking:</span>
+          <span className="text-[0.72rem] font-mono font-semibold text-[#1A1A1A]">{trackingNumber}</span>
+          <button
+            onClick={copyTracking}
+            className="ml-auto text-[#1A1A1A]/30 hover:text-[#C6973F] transition-colors duration-150"
+            aria-label="Copy tracking number"
+          >
+            {copied ? <Check size={13} strokeWidth={2} className="text-emerald-500" /> : <Copy size={13} strokeWidth={1.5} />}
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-0">
+        {steps.map((step, i) => {
+          const isLast = i === steps.length - 1
+          return (
+            <div key={step.label} className="flex gap-4">
+              {/* Spine */}
+              <div className="flex flex-col items-center flex-shrink-0 w-6">
+                {/* Node */}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 transition-all duration-200 ${
+                  step.completed
+                    ? 'bg-[#C6973F] border-[#C6973F]'
+                    : step.current
+                      ? 'bg-white border-[#C6973F]'
+                      : 'bg-white border-[#1A1A1A]/15'
+                }`}>
+                  {step.completed ? (
+                    <Check size={11} strokeWidth={2.5} className="text-white" />
+                  ) : step.current ? (
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#C6973F] animate-pulse" />
+                  ) : (
+                    <Circle size={8} strokeWidth={1.5} className="text-[#1A1A1A]/20" />
+                  )}
+                </div>
+                {/* Line */}
+                {!isLast && (
+                  <div className={`w-0.5 flex-1 min-h-[2rem] my-1 rounded-full ${
+                    step.completed ? 'bg-[#C6973F]/50' : 'bg-[#1A1A1A]/10'
+                  }`} />
+                )}
+              </div>
+              {/* Content */}
+              <div className={`pb-5 ${isLast ? 'pb-0' : ''} flex-1 min-w-0 pt-0.5`}>
+                <p className={`text-sm font-medium ${
+                  step.current    ? 'text-[#C6973F]'
+                  : step.completed ? 'text-[#1A1A1A]'
+                  : 'text-[#1A1A1A]/30'
+                }`}>
+                  {step.label}
+                  {step.current && (
+                    <span className="ml-2 text-[0.58rem] tracking-[0.15em] uppercase bg-[#C6973F]/12 text-[#C6973F] px-2 py-0.5 font-semibold">
+                      Current
+                    </span>
+                  )}
+                </p>
+                {step.time && (
+                  <p className="text-[0.65rem] text-[#1A1A1A]/35 mt-0.5 font-light">{step.time}</p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Order card ────────────────────────────────────────────────────────────────
+
+function OrderCard({ order }: { order: Order }) {
+  const [expanded, setExpanded] = useState(false)
+  const { badge, Icon } = STATUS_CONFIG[order.status]
+
+  return (
+    <article className="bg-white border border-[#1A1A1A]/8 overflow-hidden">
+
+      {/* Card header */}
+      <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5 border-b border-[#1A1A1A]/6">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-sm font-bold text-[#1A1A1A] tracking-wide">
+              #{order.id}
+            </span>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[0.62rem] font-semibold tracking-wide rounded-full ${badge}`}>
+              <Icon size={10} strokeWidth={2} />
+              {order.status}
+            </span>
+          </div>
+          <p className="flex items-center gap-1.5 text-[0.68rem] text-[#1A1A1A]/40 font-light">
+            <Calendar size={11} strokeWidth={1.5} />
+            Ordered on {order.date}
+          </p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-[0.62rem] text-[#1A1A1A]/35 font-light mb-0.5 tracking-wide">Order Total</p>
+          <p className="font-serif text-xl font-semibold text-[#C6973F] tabular-nums">{inr(order.total)}</p>
+        </div>
+      </div>
+
+      {/* Products */}
+      <div className="px-6 py-5 space-y-4">
+        {order.items.map((item) => (
+          <div key={`${item.name}-${item.size}`} className="flex gap-4 items-center">
+            <div className={`w-14 h-14 flex-shrink-0 ${item.bg} relative overflow-hidden rounded-lg`}>
+              <div className="absolute inset-0 flex items-center justify-center opacity-[0.18]" aria-hidden="true">
+                <Gem size={24} strokeWidth={0.8} className="text-[#C6973F]" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-serif text-[0.9rem] font-medium text-[#1A1A1A] leading-snug truncate">
+                {item.name}
+              </p>
+              <p className="text-[0.65rem] text-[#1A1A1A]/40 mt-0.5 font-light">
+                Size: {item.size} · Qty: {item.quantity}
+              </p>
+            </div>
+            <p className="text-sm font-semibold text-[#1A1A1A] tabular-nums whitespace-nowrap flex-shrink-0">
+              {inr(item.price * item.quantity)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Action bar */}
+      <div className="flex items-center justify-between gap-3 px-6 py-4 bg-[#FDF6EC]/60 border-t border-[#1A1A1A]/6 flex-wrap">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-center gap-1.5 text-[0.7rem] tracking-[0.12em] uppercase font-medium text-[#C6973F] hover:text-[#b5872e] transition-colors duration-150"
+        >
+          {expanded ? <ChevronUp size={13} strokeWidth={1.5} /> : <ChevronDown size={13} strokeWidth={1.5} />}
+          {expanded ? 'Hide Details' : 'View Details'}
+        </button>
+        <button
+          onClick={() => setExpanded(true)}
+          className="flex items-center gap-1.5 px-4 py-2 border border-[#1A1A1A]/15 text-[0.68rem] tracking-[0.12em] uppercase font-medium text-[#1A1A1A]/60 hover:border-[#C6973F] hover:text-[#C6973F] transition-all duration-150"
+        >
+          <Truck size={12} strokeWidth={1.5} />
+          Track Order
+        </button>
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="border-t border-[#1A1A1A]/6 px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+          {/* Left: order info */}
+          <div className="space-y-5">
+            {/* Delivery address */}
+            <div>
+              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-2">
+                Delivery Address
+              </p>
+              <div className="flex gap-2.5">
+                <MapPin size={14} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-[#1A1A1A]/70 font-light leading-relaxed">
+                  {order.address},<br />
+                  {order.city}, {order.state} – {order.pincode}
+                </p>
+              </div>
+            </div>
+
+            {/* Delivery method */}
+            <div>
+              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-2">
+                Delivery Method
+              </p>
+              <div className="flex gap-2.5 items-center">
+                <Truck size={14} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0" />
+                <p className="text-sm text-[#1A1A1A]/70 font-light">{order.deliveryMethod}</p>
+              </div>
+            </div>
+
+            {/* Payment */}
+            <div>
+              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-2">
+                Payment Method
+              </p>
+              <div className="flex gap-2.5 items-center">
+                <CreditCard size={14} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0" />
+                <p className="text-sm text-[#1A1A1A]/70 font-light">{order.paymentMethod}</p>
+              </div>
+            </div>
+
+            {/* Estimated date */}
+            <div>
+              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-2">
+                {order.status === 'Delivered' ? 'Delivered On' : 'Estimated Delivery'}
+              </p>
+              <div className="flex gap-2.5 items-center">
+                <Calendar size={14} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0" />
+                <p className="text-sm text-[#1A1A1A]/70 font-light">{order.estimatedDate}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: tracking */}
+          <div>
+            <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-4">
+              Order Timeline
+            </p>
+            <TrackingTimeline steps={order.tracking} trackingNumber={order.trackingNumber} />
+          </div>
+        </div>
+      )}
+    </article>
+  )
+}
+
+// ─── Stats card ────────────────────────────────────────────────────────────────
+
+function StatCard({
+  label, value, sub, Icon, accent,
+}: {
+  label: string
+  value: string
+  sub:   string
+  Icon:  React.FC<React.SVGProps<SVGSVGElement> & { size?: number; strokeWidth?: number }>
+  accent: string
+}) {
+  return (
+    <div className="bg-white border border-[#1A1A1A]/8 p-5 flex items-start gap-4">
+      <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center ${accent}`}>
+        <Icon size={18} strokeWidth={1.5} />
+      </div>
+      <div>
+        <p className="text-[0.62rem] tracking-[0.2em] uppercase text-[#1A1A1A]/40 font-medium mb-1">{label}</p>
+        <p className="font-serif text-xl font-semibold text-[#1A1A1A] leading-none">{value}</p>
+        <p className="text-[0.68rem] text-[#1A1A1A]/35 mt-1 font-light">{sub}</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
+
+export default function OrdersPage() {
+  const router = useRouter()
+  const [mounted,   setMounted]   = useState(false)
+  const [authReady, setAuthReady] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        router.replace('/auth/login')
+        return
+      }
+      setUserEmail(data.session.user.email ?? '')
+      setAuthReady(true)
+    })
+  }, [router])
+
+  if (!mounted || !authReady) {
+    return (
+      <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
+        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  const totalSpent    = ORDERS.reduce((s, o) => s + o.total, 0)
+  const favouriteCat  = 'Necklaces'
+  const showEmpty     = false // flip to true to preview empty state
+
+  return (
+    <div className="min-h-screen bg-[#FDF6EC]">
+
+      {/* Page header */}
+      <div className="bg-[#FDF6EC] border-b border-[#C6973F]/12 px-4 py-10">
+        <div className="max-w-5xl mx-auto">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#1A1A1A]/40 mb-4 flex-wrap">
+            <Link href="/" className="hover:text-[#C6973F] transition-colors duration-150">Home</Link>
+            <ChevronRight size={11} strokeWidth={1.5} />
+            <span className="text-[#C6973F]">My Orders</span>
+          </nav>
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A] mb-1">
+            My Orders
+          </h1>
+          <p className="text-sm text-[#1A1A1A]/40 font-light">
+            {userEmail}
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+        {showEmpty ? (
+          /* ── Empty state ── */
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <div className="text-center max-w-sm">
+              <div className="w-20 h-20 mx-auto mb-6 bg-[#C6973F]/10 flex items-center justify-center">
+                <ShoppingBag size={34} strokeWidth={1} className="text-[#C6973F]/50" />
+              </div>
+              <h2 className="font-serif text-2xl font-semibold text-[#1A1A1A] mb-2">No orders yet</h2>
+              <div className="flex items-center justify-center gap-3 my-4" aria-hidden="true">
+                <span className="h-px w-8 bg-[#C6973F]/40" />
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                  <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" />
+                </svg>
+                <span className="h-px w-8 bg-[#C6973F]/40" />
+              </div>
+              <p className="text-sm text-[#1A1A1A]/45 font-light leading-relaxed mb-8">
+                You haven&apos;t placed any orders yet.<br />
+                Start exploring our handcrafted collection.
+              </p>
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-200"
+              >
+                Start Shopping
+                <ChevronRight size={13} strokeWidth={1.5} />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* ── Stats row ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <StatCard
+                label="Total Orders"
+                value={String(ORDERS.length)}
+                sub={`${ORDERS.filter((o) => o.status === 'Delivered').length} delivered`}
+                Icon={Package as never}
+                accent="bg-[#C6973F]/12 text-[#C6973F]"
+              />
+              <StatCard
+                label="Amount Spent"
+                value={inr(totalSpent)}
+                sub="Across all orders"
+                Icon={TrendingUp as never}
+                accent="bg-emerald-50 text-emerald-600"
+              />
+              <StatCard
+                label="Favourite Category"
+                value={favouriteCat}
+                sub="Most ordered"
+                Icon={Star as never}
+                accent="bg-blue-50 text-blue-500"
+              />
+            </div>
+
+            {/* ── Section header ── */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h2 className="font-serif text-xl font-semibold text-[#1A1A1A]">
+                  Order History
+                </h2>
+                <span className="text-[0.65rem] font-semibold px-2.5 py-1 bg-[#C6973F]/12 text-[#C6973F] rounded-full">
+                  {ORDERS.length}
+                </span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {(['All', 'Processing', 'Shipped', 'Delivered'] as const).map((f) => (
+                  <span
+                    key={f}
+                    className="px-3 py-1 text-[0.62rem] tracking-wide font-medium border border-[#1A1A1A]/12 text-[#1A1A1A]/45 cursor-default"
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Order cards ── */}
+            <div className="space-y-5">
+              {ORDERS.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
