@@ -122,12 +122,12 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     setDropdown(false)
-    try {
-      await supabase.auth.signOut()
-    } catch { /* ignore network errors on sign-out */ }
     setUser(null)
+    void switchUser(null)
+    // Local scope clears session immediately — never wait on a hung network request
+    void supabase.auth.signOut({ scope: 'local' })
     router.push('/')
     router.refresh()
   }
@@ -139,7 +139,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         isScrolled
           ? 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
           : 'bg-[#FDF6EC]'
@@ -231,7 +231,7 @@ export default function Navbar() {
 
                   {/* Dropdown */}
                   {dropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2.5 w-48 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-[#1A1A1A]/6 z-50">
+                    <div className="absolute right-0 top-full mt-2.5 w-48 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-[#1A1A1A]/6 z-[110]">
                       {/* User info */}
                       <div className="px-4 py-3 border-b border-[#1A1A1A]/6">
                         <p className="text-[0.6rem] tracking-[0.18em] uppercase text-[#1A1A1A]/35 font-medium">Signed in as</p>

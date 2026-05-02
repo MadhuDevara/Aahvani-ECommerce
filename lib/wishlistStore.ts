@@ -74,11 +74,11 @@ export const useWishlistStore = create<WishlistState>()((set, get) => {
 
   // ── Listen to login / logout and switch user's wishlist ───────────────────
   if (typeof window !== 'undefined') {
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       const email = session?.user?.email ?? null
       const state = get()
       if (state.currentEmail !== email) {
-        await get().switchUser(email)
+        void get().switchUser(email)
       }
     })
   }

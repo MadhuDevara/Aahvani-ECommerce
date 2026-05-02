@@ -33,8 +33,8 @@ export default function AdminSidebar({ email }: { email: string }) {
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
+  const handleLogout = () => {
+    void supabase.auth.signOut({ scope: 'local' })
     router.replace('/admin')
   }
 
