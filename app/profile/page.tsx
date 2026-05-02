@@ -92,11 +92,6 @@ function Toggle({ on, onChange, id }: { on: boolean; onChange: () => void; id: s
   )
 }
 
-const DUMMY_ADDRESSES: Address[] = [
-  { id: 1, label: 'Home',   line1: '42, MG Road', line2: 'Near City Mall', city: 'Mumbai',    state: 'Maharashtra', pincode: '400001', isDefault: true  },
-  { id: 2, label: 'Office', line1: '15, Bandra West', line2: 'Plot 7, Business Park', city: 'Mumbai', state: 'Maharashtra', pincode: '400050', isDefault: false },
-]
-
 const INDIAN_STATES = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Delhi','Jammu & Kashmir','Ladakh']
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
@@ -115,7 +110,7 @@ export default function ProfilePage() {
   const [infoSaved,   setInfoSaved]   = useState(false)
 
   // Addresses
-  const [addresses,      setAddresses]      = useState<Address[]>(DUMMY_ADDRESSES)
+  const [addresses,      setAddresses]      = useState<Address[]>([])
   const [showAddForm,    setShowAddForm]     = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [newAddr, setNewAddr] = useState({ label: '', line1: '', line2: '', city: '', state: '', pincode: '', isDefault: false })
@@ -133,16 +128,67 @@ export default function ProfilePage() {
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { router.replace('/auth/login'); return }
-      setUser(data.session.user)
+      const u = data.session.user
+      setUser(u)
+
+      // ── 1. Load from auth metadata (saved previously) ─────────────────────
+      const meta = u.user_metadata ?? {}
+      if (meta.full_name) setName(meta.full_name)
+      if (meta.phone)     setPhone(String(meta.phone).replace(/^\+91/, ''))
+      if (meta.dob)       setDob(meta.dob)
+
+      // ── 2. Fetch orders to fill in any missing profile fields + addresses ──
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('contact, address')
+        .eq('user_email', u.email ?? '')
+        .order('created_at', { ascending: false })
+
+      if (orders && orders.length > 0) {
+        // Pre-fill name/phone from latest order if still empty
+        const latestContact = orders[0].contact as Record<string, string> | null
+        if (!meta.full_name && latestContact?.fullName) setName(latestContact.fullName)
+        if (!meta.phone     && latestContact?.phone)    setPhone(latestContact.phone.replace(/^\+91/, ''))
+
+        // Build unique address list from order history
+        const seen = new Set<string>()
+        const derived: Address[] = []
+        let idx = 1
+
+        for (const order of orders) {
+          const addr = order.address as Record<string, string> | null
+          if (!addr?.line1) continue
+          const key = `${addr.line1}|${addr.city}|${addr.pincode}`.toLowerCase()
+          if (seen.has(key)) continue
+          seen.add(key)
+          derived.push({
+            id:        idx++,
+            label:     derived.length === 0 ? 'Default' : `Address ${idx - 1}`,
+            line1:     addr.line1   ?? '',
+            line2:     addr.line2   ?? '',
+            city:      addr.city    ?? '',
+            state:     addr.state   ?? '',
+            pincode:   addr.pincode ?? '',
+            isDefault: derived.length === 0,
+          })
+        }
+        if (derived.length > 0) setAddresses(derived)
+      }
+
       setAuthReady(true)
     })
   }, [router])
 
-  const saveInfo = () => {
+  const saveInfo = async () => {
     setInfoSaving(true)
-    setTimeout(() => { setInfoSaving(false); setInfoSaved(true); setTimeout(() => setInfoSaved(false), 2500) }, 900)
+    await supabase.auth.updateUser({
+      data: { full_name: name.trim(), phone: phone.trim(), dob: dob },
+    })
+    setInfoSaving(false)
+    setInfoSaved(true)
+    setTimeout(() => setInfoSaved(false), 2500)
   }
 
   const updatePassword = async () => {
