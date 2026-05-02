@@ -381,25 +381,20 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (!mounted) return
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
-        router.replace('/auth/login')
-        return
-      }
-      const email = data.session.user.email ?? ''
-      setUserEmail(email)
-
-      const { data: rows, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_email', email)
-        .order('created_at', { ascending: false })
-
-      if (!error && rows) {
-        setOrders(rows.map(mapDbOrder))
-      }
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(async ({ data }) => {
+        if (!data.session) { router.replace('/auth/login'); setLoading(false); return }
+        const email = data.session.user.email ?? ''
+        setUserEmail(email)
+        const { data: rows } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_email', email)
+          .order('created_at', { ascending: false })
+        if (rows) setOrders(rows.map(mapDbOrder))
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
   }, [mounted, router])
 
   // Only block on hydration — never on async data fetches

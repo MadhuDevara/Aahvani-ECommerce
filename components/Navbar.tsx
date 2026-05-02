@@ -123,11 +123,12 @@ export default function Navbar() {
   }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
     setDropdown(false)
+    try {
+      await supabase.auth.signOut()
+    } catch { /* ignore network errors on sign-out */ }
     setUser(null)
-    const onAdminPage = window.location.pathname.startsWith('/admin')
-    router.push(onAdminPage ? '/admin' : '/')
+    router.push('/')
     router.refresh()
   }
 
