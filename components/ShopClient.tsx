@@ -434,8 +434,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
   const [view, setView]                   = useState<'grid' | 'list'>('grid')
   const [currentPage, setCurrentPage]     = useState(1)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  const wishlistItems       = useWishlistStore((s) => s.items)
   const toggleWishlistStore = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlistedStore   = useWishlistStore((s) => s.isWishlisted)
+  const isWishlistedStore   = (key: string) => wishlistItems.some((i) => i.id === key)
 
   // Sync category filter when URL param changes (e.g. navigating from homepage cards)
   useEffect(() => {

@@ -32,8 +32,9 @@ export default function FeaturedProducts() {
   const [featured,  setFeatured]  = useState<Product[]>(LOCAL_FEATURED)
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
   const addToCart       = useCartStore((s) => s.addToCart)
+  const wishlistItems   = useWishlistStore((s) => s.items)
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlisted    = useWishlistStore((s) => s.isWishlisted)
+  const isWishlisted    = (key: string) => wishlistItems.some((i) => i.id === key)
 
   useEffect(() => {
     supabase

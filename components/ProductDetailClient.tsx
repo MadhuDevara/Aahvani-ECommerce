@@ -82,9 +82,9 @@ function WhatsAppIcon() {
 // ─── Related product card (compact) ──────────────────────────────────────────
 
 function RelatedCard({ product }: { product: Product }) {
+  const wishlistItems  = useWishlistStore((s) => s.items)
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlisted   = useWishlistStore((s) => s.isWishlisted)
-  const wishlisted     = isWishlisted(product.sku || String(product.id))
+  const wishlisted     = wishlistItems.some((i) => i.id === (product.sku || String(product.id)))
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
   return (
     <div className="group bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
@@ -139,9 +139,9 @@ export default function ProductDetailClient({ productId }: { productId: string }
   const [selectedSize, setSelectedSize]   = useState('')
   const [quantity, setQuantity]           = useState(1)
   const [activeTab, setActiveTab]         = useState('Description')
+  const wishlistItems   = useWishlistStore((s) => s.items)
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlistedFn  = useWishlistStore((s) => s.isWishlisted)
-  const isWishlisted    = isWishlistedFn(product.sku || String(product.id))
+  const isWishlisted    = wishlistItems.some((i) => i.id === (product.sku || String(product.id)))
   const [copied, setCopied]               = useState(false)
   const [addedToCart, setAddedToCart]     = useState(false)
   const [sizeError, setSizeError]         = useState(false)
