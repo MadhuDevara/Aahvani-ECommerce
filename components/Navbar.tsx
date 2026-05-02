@@ -78,10 +78,10 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [searchOpen])
 
-  const cartCount      = useCartStore((s) => s.getItemCount())
-  const clearCart      = useCartStore((s) => s.clearCart)
-  const wishlistItems  = useWishlistStore((s) => s.items)
-  const switchUser     = useWishlistStore((s) => s.switchUser)
+  const cartCount       = useCartStore((s) => s.getItemCount())
+  const switchCartUser  = useCartStore((s) => s.switchUser)
+  const wishlistItems   = useWishlistStore((s) => s.items)
+  const switchUser      = useWishlistStore((s) => s.switchUser)
   const wishlistCount  = wishlistItems.length
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -100,17 +100,21 @@ export default function Navbar() {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user ?? null
       setUser(u)
-      switchUser(u?.email ?? null)
+      const email = u?.email ?? null
+      switchUser(email)
+      switchCartUser(email)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null
       setUser(u)
-      switchUser(u?.email ?? null)
+      const email = u?.email ?? null
+      switchUser(email)
+      switchCartUser(email)
     })
 
     return () => subscription.unsubscribe()
-  }, [switchUser])
+  }, [switchUser, switchCartUser])
 
   // ── Close dropdown on outside click ────────────────────────────────────────
   useEffect(() => {
@@ -126,8 +130,8 @@ export default function Navbar() {
   const handleSignOut = () => {
     setDropdown(false)
     setUser(null)
-    clearCart()
     void switchUser(null)
+    switchCartUser(null)
     // Local scope clears session immediately — never wait on a hung network request
     void supabase.auth.signOut({ scope: 'local' })
     router.push('/')
