@@ -23,24 +23,21 @@ function GoldDivider() {
 
 export default function WishlistPage() {
   const router = useRouter()
-  const [mounted,   setMounted]   = useState(false)
-  const [authReady, setAuthReady] = useState(false)
-  const [addedIds,  setAddedIds]  = useState<Set<string>>(new Set())
+  const [mounted,  setMounted]  = useState(false)
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
 
-  const items             = useWishlistStore((s) => s.items)
+  const items              = useWishlistStore((s) => s.items)
   const removeFromWishlist = useWishlistStore((s) => s.removeFromWishlist)
-  const clearWishlist     = useWishlistStore((s) => s.clearWishlist)
-  const addToCart         = useCartStore((s) => s.addToCart)
+  const clearWishlist      = useWishlistStore((s) => s.clearWishlist)
+  const addToCart          = useCartStore((s) => s.addToCart)
 
   useEffect(() => { setMounted(true) }, [])
 
+  // Background auth guard — redirect if not logged in, but never block rendering
   useEffect(() => {
-    // onAuthStateChange fires immediately with INITIAL_SESSION — no async delay
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) { router.replace('/auth/login'); return }
-      setAuthReady(true)
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) router.replace('/auth/login')
     })
-    return () => subscription.unsubscribe()
   }, [router])
 
   const handleAddToCart = (item: typeof items[number]) => {
@@ -58,7 +55,8 @@ export default function WishlistPage() {
     setTimeout(() => setAddedIds((prev) => { const n = new Set(prev); n.delete(item.id); return n }), 1500)
   }
 
-  if (!mounted || !authReady) {
+  // Only block on hydration (instant — no network call)
+  if (!mounted) {
     return (
       <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
         <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
