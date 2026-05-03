@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   ChevronRight,
   Star,
@@ -21,8 +22,13 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { inr, productRouteId, type Product } from '@/lib/products'
+import { sizeGuideVariantFromCategory } from '@/lib/size-guide-charts'
+import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
 import { useCartStore } from '@/lib/cartStore'
-import { useWishlistStore } from '@/lib/wishlistStore'
+import { useWishlistStore, wishlistItemFromProduct } from '@/lib/wishlistStore'
+import { loginPath } from '@/lib/login-path'
+import { hasAuthSession } from '@/lib/has-auth-session'
+import SizeGuideModal from '@/components/SizeGuideModal'
 
 // ─── Thumbnail image variants (simulate 4 angles of the same product) ─────────
 
@@ -82,35 +88,41 @@ function WhatsAppIcon() {
 // ─── Related product card (compact) ──────────────────────────────────────────
 
 function RelatedCard({ product }: { product: Product }) {
+  const router         = useRouter()
+  const pathname       = usePathname()
+  const addToCart      = useCartStore((s) => s.addToCart)
   const wishlistItems  = useWishlistStore((s) => s.items)
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist)
   const wishlisted     = wishlistItems.some((i) => i.id === productRouteId(product))
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
   return (
     <div className="group bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
-      <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>
-        <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
-          {product.label && (
-            <span className="absolute top-2 left-2 z-10 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
+      <ProductTileWithWishlist
+        href={`/shop/${encodeURIComponent(productRouteId(product))}`}
+        productName={product.name}
+        bgClassName={product.bg}
+        wishlisted={wishlisted}
+        gemSize="sm"
+        wishlistPosition="top-2 right-2"
+        wishlistButtonClassName="h-7 w-7"
+        onWishlistClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          void (async () => {
+            const ok = await toggleWishlist(wishlistItemFromProduct(product))
+            if (!ok && !(await hasAuthSession())) {
+              router.push(loginPath(pathname || '/shop'))
+            }
+          })()
+        }}
+        label={
+          product.label ? (
+            <span className="pointer-events-none absolute top-2 left-2 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
               {product.label}
             </span>
-          )}
-          <button
-            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
-            className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
-            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          >
-            <Heart
-              size={12}
-              strokeWidth={1.5}
-              className={wishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
-            />
-          </button>
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
-            <Gem size={48} strokeWidth={0.8} className="text-[#C6973F]" />
-          </div>
-        </div>
-      </Link>
+          ) : null
+        }
+      />
       <div className="p-3.5">
         <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>
           <h3 className="font-serif text-[0.88rem] font-medium text-[#1A1A1A] mb-2 group-hover:text-[#C6973F] transition-colors duration-200 leading-snug">
@@ -122,7 +134,25 @@ function RelatedCard({ product }: { product: Product }) {
           <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
           <span className="text-[0.58rem] text-emerald-600 font-medium">{discount}% off</span>
         </div>
-        <button className="w-full py-2 border border-[#C6973F] text-[#C6973F] text-[0.62rem] tracking-[0.15em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200">
+        <button
+          type="button"
+          onClick={async () => {
+            const ok = await addToCart({
+              id:            productRouteId(product),
+              name:          product.name,
+              price:         product.salePrice,
+              originalPrice: product.originalPrice,
+              quantity:      1,
+              size:          'Free Size',
+              category:      product.category,
+              bg:            product.bg,
+            })
+            if (!ok && !(await hasAuthSession())) {
+              router.push(loginPath(pathname || '/shop'))
+            }
+          }}
+          className="w-full py-2 border border-[#C6973F] text-[#C6973F] text-[0.62rem] tracking-[0.15em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
+        >
           Add to Cart
         </button>
       </div>
@@ -139,6 +169,8 @@ export default function ProductDetailClient({
   product: Product
   relatedProducts: Product[]
 }) {
+  const router            = useRouter()
+  const pathname          = usePathname()
   const [selectedThumb, setSelectedThumb] = useState(0)
   const [selectedSize, setSelectedSize]   = useState('')
   const [quantity, setQuantity]           = useState(1)
@@ -149,26 +181,42 @@ export default function ProductDetailClient({
   const [copied, setCopied]               = useState(false)
   const [addedToCart, setAddedToCart]     = useState(false)
   const [sizeError, setSizeError]         = useState(false)
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false)
+  const [pageUrl, setPageUrl]             = useState('')
 
   const addToCart = useCartStore((s) => s.addToCart)
+  const sizeGuideVariant = sizeGuideVariantFromCategory(product.category)
 
-  const sizes   = getSizes(product.category)
+  useEffect(() => {
+    setPageUrl(window.location.href)
+  }, [])
+
+  const SIZE_ORDER = ['S', 'M', 'L', 'XL', 'XXL', 'Free Size']
+  const sortedSizes =
+    product.sizes && product.sizes.length > 0
+      ? [...product.sizes].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b))
+      : getSizes(product.category)
   const details = getDetails(product)
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 
+  const whatsappShareHref = pageUrl
+    ? `https://wa.me/?text=${encodeURIComponent(pageUrl)}`
+    : '#'
+
   const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
+    const url = pageUrl || window.location.href
+    navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedSize) {
       setSizeError(true)
       return
     }
     setSizeError(false)
-    addToCart({
+    const ok = await addToCart({
       id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
@@ -178,6 +226,10 @@ export default function ProductDetailClient({
       category:      product.category,
       bg:            product.bg,
     })
+    if (!ok) {
+      if (!(await hasAuthSession())) router.push(loginPath(pathname || '/shop'))
+      return
+    }
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
   }
@@ -309,12 +361,18 @@ export default function ProductDetailClient({
                 <p className="text-[0.68rem] tracking-[0.22em] uppercase text-[#1A1A1A] font-medium">
                   {product.category === 'Necklaces' ? 'Length' : 'Size'}
                 </p>
-                <button className="text-[0.65rem] text-[#C6973F] underline underline-offset-2 hover:no-underline transition-all duration-150">
-                  Size Guide
-                </button>
+                {sizeGuideVariant !== 'earrings' && (
+                  <button
+                    type="button"
+                    onClick={() => setSizeGuideOpen(true)}
+                    className="text-[0.65rem] text-[#C6973F] underline underline-offset-2 hover:no-underline transition-all duration-150"
+                  >
+                    Size Guide
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
+                {sortedSizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => { setSelectedSize(size); setSizeError(false) }}
@@ -385,7 +443,15 @@ export default function ProductDetailClient({
                 )}
               </button>
               <button
-                onClick={() => toggleWishlist({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg })}
+                type="button"
+                onClick={() => {
+                  void (async () => {
+                    const ok = await toggleWishlist(wishlistItemFromProduct(product))
+                    if (!ok && !(await hasAuthSession())) {
+                      router.push(loginPath(pathname || '/shop'))
+                    }
+                  })()
+                }}
                 className={`flex-1 sm:flex-none sm:px-6 flex items-center justify-center gap-2 py-4 border text-[0.72rem] tracking-[0.2em] uppercase font-medium transition-all duration-200 ${
                   isWishlisted
                     ? 'bg-[#C6973F]/10 border-[#C6973F] text-[#C6973F]'
@@ -421,9 +487,10 @@ export default function ProductDetailClient({
                 Share
               </span>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                href={whatsappShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => { if (!pageUrl) e.preventDefault() }}
                 className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/15 text-[#25D366] hover:border-[#25D366] transition-colors duration-150"
                 aria-label="Share on WhatsApp"
               >
@@ -611,6 +678,11 @@ export default function ProductDetailClient({
       </div>
       )}
 
+      <SizeGuideModal
+        open={sizeGuideOpen}
+        onClose={() => setSizeGuideOpen(false)}
+        variant={sizeGuideVariant}
+      />
     </div>
   )
 }

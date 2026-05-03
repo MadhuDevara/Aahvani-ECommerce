@@ -4,11 +4,11 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Heart, ChevronRight, ShoppingBag, Gem, Trash2 } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Heart, ChevronRight, ShoppingBag, Gem, Trash2, Lock } from 'lucide-react'
 import { useWishlistStore } from '@/lib/wishlistStore'
 import { useCartStore } from '@/lib/cartStore'
-import { supabase } from '@/lib/supabase'
+import { loginPath } from '@/lib/login-path'
 import { inr } from '@/lib/products'
 
 function GoldDivider() {
@@ -22,10 +22,14 @@ function GoldDivider() {
 }
 
 export default function WishlistPage() {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
   const [mounted,  setMounted]  = useState(false)
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
 
+  const userEmail          = useWishlistStore((s) => s.userEmail)
+  const wlReady            = useWishlistStore((s) => s.ready)
+  const wlLoading          = useWishlistStore((s) => s.loading)
   const items              = useWishlistStore((s) => s.items)
   const removeFromWishlist = useWishlistStore((s) => s.removeFromWishlist)
   const clearWishlist      = useWishlistStore((s) => s.clearWishlist)
@@ -33,15 +37,8 @@ export default function WishlistPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Background auth guard — redirect if not logged in, but never block rendering
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) router.replace('/auth/login')
-    })
-  }, [router])
-
-  const handleAddToCart = (item: typeof items[number]) => {
-    addToCart({
+  const handleAddToCart = async (item: (typeof items)[number]) => {
+    const ok = await addToCart({
       id:            item.id,
       name:          item.name,
       price:         item.price,
@@ -51,6 +48,7 @@ export default function WishlistPage() {
       category:      item.category,
       bg:            item.bg,
     })
+    if (!ok) return
     setAddedIds((prev) => new Set(prev).add(item.id))
     setTimeout(() => setAddedIds((prev) => { const n = new Set(prev); n.delete(item.id); return n }), 1500)
   }
@@ -60,6 +58,51 @@ export default function WishlistPage() {
     return (
       <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
         <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!wlReady || (userEmail && wlLoading)) {
+    return (
+      <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
+        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!userEmail) {
+    return (
+      <div className="min-h-screen bg-[#FDF6EC]">
+        <div className="bg-[#FDF6EC] border-b border-[#C6973F]/12 px-4 py-10">
+          <div className="max-w-5xl mx-auto">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#1A1A1A]/40 mb-4">
+              <Link href="/" className="hover:text-[#C6973F] transition-colors">Home</Link>
+              <ChevronRight size={11} strokeWidth={1.5} />
+              <span className="text-[#C6973F]">My Wishlist</span>
+            </nav>
+            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A]">My Wishlist</h1>
+          </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 py-16 flex items-center justify-center min-h-[40vh]">
+          <div className="text-center max-w-sm">
+            <div className="w-20 h-20 mx-auto mb-6 bg-[#C6973F]/10 flex items-center justify-center">
+              <Lock size={34} strokeWidth={1} className="text-[#C6973F]/60" />
+            </div>
+            <h2 className="font-serif text-2xl font-semibold text-[#1A1A1A] mb-2">
+              Sign in to view your wishlist
+            </h2>
+            <p className="text-sm text-[#1A1A1A]/45 font-light mb-8 leading-relaxed">
+              Saved pieces are stored in your account and stay private to you.
+            </p>
+            <Link
+              href={loginPath(pathname || '/wishlist')}
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-200"
+            >
+              Login
+              <ChevronRight size={13} strokeWidth={1.5} />
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
@@ -133,27 +176,34 @@ export default function WishlistPage() {
               return (
                 <div key={item.id} className="group bg-white border border-[#1A1A1A]/8 hover:shadow-[0_8px_32px_rgba(198,151,63,0.1)] hover:border-[#C6973F]/20 transition-all duration-300">
                   {/* Image */}
-                  <Link href={`/shop/${encodeURIComponent(item.id)}`}>
-                    <div className={`relative aspect-square ${item.bg} overflow-hidden`}>
+                  <div
+                    role="presentation"
+                    className={`relative aspect-square cursor-pointer overflow-hidden ${item.bg}`}
+                    onClick={() => router.push(`/shop/${encodeURIComponent(item.id)}`)}
+                  >
+                    <div className="pointer-events-none relative z-0 h-full w-full">
                       <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
                         <Gem size={72} strokeWidth={0.8} className="text-[#C6973F]" />
                       </div>
                       <div className="absolute inset-0 bg-[#C6973F]/0 group-hover:bg-[#C6973F]/4 transition-colors duration-300" />
                       {discount > 0 && (
-                        <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-emerald-500 text-white font-medium">
+                        <span className="absolute top-3 left-3 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-emerald-500 text-white font-medium">
                           {discount}% off
                         </span>
                       )}
-                      {/* Remove button */}
-                      <button
-                        onClick={(e) => { e.preventDefault(); removeFromWishlist(item.id) }}
-                        className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-red-50 transition-colors duration-200 border border-transparent hover:border-red-100"
-                        aria-label="Remove from wishlist"
-                      >
-                        <Heart size={14} strokeWidth={1.5} className="fill-[#C6973F] text-[#C6973F]" />
-                      </button>
                     </div>
-                  </Link>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeFromWishlist(item.id)
+                      }}
+                      className="absolute top-3 right-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center border border-transparent bg-white/90 transition-colors duration-200 hover:border-red-100 hover:bg-red-50"
+                      aria-label="Remove from wishlist"
+                    >
+                      <Heart size={14} strokeWidth={1.5} className="fill-[#C6973F] text-[#C6973F]" />
+                    </button>
+                  </div>
 
                   {/* Info */}
                   <div className="p-5">

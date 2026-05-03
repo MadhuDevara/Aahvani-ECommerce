@@ -21,6 +21,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useIsClient } from '@/lib/use-is-client'
 import type { User } from '@supabase/supabase-js'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -37,16 +38,6 @@ interface Address {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-
-function GoldDivider() {
-  return (
-    <div className="flex items-center gap-3 my-1" aria-hidden="true">
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-    </div>
-  )
-}
 
 function SectionCard({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
@@ -98,7 +89,7 @@ const INDIAN_STATES = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chh
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [mounted,   setMounted]   = useState(false)
+  const mounted = useIsClient()
   const [user,      setUser]      = useState<User | null>(null)
 
   // Personal info
@@ -124,8 +115,6 @@ export default function ProfilePage() {
   // Notifications
   const [notifs, setNotifs] = useState({ orderUpdates: true, promotions: false, newArrivals: true })
 
-  useEffect(() => { setMounted(true) }, [])
-
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { router.replace('/auth/login'); return }
@@ -142,7 +131,7 @@ export default function ProfilePage() {
       const { data: orders } = await supabase
         .from('orders')
         .select('contact, address')
-        .eq('user_email', u.email ?? '')
+        .eq('user_id', u.id)
         .order('created_at', { ascending: false })
 
       if (orders && orders.length > 0) {

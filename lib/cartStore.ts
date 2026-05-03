@@ -12,168 +12,249 @@ export interface CartItem {
   bg: string
 }
 
-const LEGACY_PERSIST_KEY = 'aahvani-cart'
+export type AuthUserRef = { id: string; email?: string | null }
 
-function storageKey(email: string | null) {
-  return email ? `aahvani-cart-${email}` : 'aahvani-cart-guest'
+function lineKey(item: Pick<CartItem, 'id' | 'size'>) {
+  return `${item.id}::${item.size}`
 }
 
-/** Same pattern as wishlist — avoids saving cart under guest before session hydrates */
-function getEmailSync(): string | null {
-  if (typeof window === 'undefined') return null
-  try {
-    for (const key of Object.keys(localStorage)) {
-      if (key.includes('-auth-token')) {
-        const raw = localStorage.getItem(key)
-        if (!raw) continue
-        const data = JSON.parse(raw) as { user?: { email?: string } }
-        return data?.user?.email ?? null
-      }
-    }
-  } catch { /* ignore */ }
-  return null
-}
-
-function mergeCarts(a: CartItem[], b: CartItem[]): CartItem[] {
-  const map = new Map<string, CartItem>()
-  const rowKey = (i: CartItem) => `${i.id}::${i.size}`
-  for (const item of a) map.set(rowKey(item), { ...item })
-  for (const item of b) {
-    const k = rowKey(item)
-    const ex = map.get(k)
-    if (ex) map.set(k, { ...ex, quantity: ex.quantity + item.quantity })
-    else map.set(k, { ...item })
-  }
-  return [...map.values()]
-}
-
-function loadRaw(email: string | null): CartItem[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(storageKey(email))
-    return raw ? (JSON.parse(raw) as CartItem[]) : []
-  } catch {
-    return []
-  }
-}
-
-function saveRaw(email: string | null, items: CartItem[]) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(storageKey(email), JSON.stringify(items))
-  } catch { /* quota */ }
-}
-
-/** Old Zustand persist blob → merge once then drop */
-function migrateLegacyZustandCart(): CartItem[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const legacy = localStorage.getItem(LEGACY_PERSIST_KEY)
-    if (!legacy) return []
-    const parsed = JSON.parse(legacy) as { state?: { items?: CartItem[] } }
-    const items = parsed?.state?.items
-    localStorage.removeItem(LEGACY_PERSIST_KEY)
-    return Array.isArray(items) ? items : []
-  } catch {
-    localStorage.removeItem(LEGACY_PERSIST_KEY)
-    return []
-  }
-}
-
-function runOneTimeLegacyMigration(initialEmail: string | null) {
-  const legacyItems = migrateLegacyZustandCart()
-  if (legacyItems.length === 0) return
-  const target = initialEmail
-  const merged = mergeCarts(loadRaw(target), legacyItems)
-  saveRaw(target, merged)
+function isCartItem(v: unknown): v is CartItem {
+  if (!v || typeof v !== 'object') return false
+  const o = v as Record<string, unknown>
+  return (
+    typeof o.id === 'string' &&
+    typeof o.name === 'string' &&
+    typeof o.price === 'number' &&
+    typeof o.originalPrice === 'number' &&
+    typeof o.quantity === 'number' &&
+    typeof o.size === 'string' &&
+    typeof o.category === 'string' &&
+    typeof o.bg === 'string'
+  )
 }
 
 interface CartState {
-  items: CartItem[]
-  currentEmail: string | null
-  switchUser: (email: string | null) => void
-  addToCart:      (item: CartItem) => void
-  removeFromCart: (id: string, size: string) => void
-  updateQuantity: (id: string, size: string, quantity: number) => void
-  clearCart:      () => void
+  userId:   string | null
+  items:    CartItem[]
+  loading:  boolean
+  /** True after first auth sync (login or confirmed logged-out). */
+  ready:    boolean
+  switchCartUser: (user: AuthUserRef | null) => Promise<void>
+  addToCart:      (item: CartItem) => Promise<boolean>
+  removeFromCart: (id: string, size: string) => Promise<void>
+  updateQuantity: (id: string, size: string, quantity: number) => Promise<void>
+  clearCart:      () => Promise<void>
   getTotal:       () => number
   getItemCount:   () => number
 }
 
+/**
+ * Bump before mutations / logout so any in-flight SELECT completes stale and is ignored.
+ * `fetchCartRows` snapshots epoch before awaiting Supabase.
+ */
+let hydrationEpoch = 0
+
+/** `null` = superseded by a newer epoch (do not apply). `[]` = loaded successfully, empty cart. */
+async function fetchCartRows(userId: string): Promise<CartItem[] | null> {
+  const epochSnap = hydrationEpoch
+  const { data, error } = await supabase
+    .from('cart_items')
+    .select('item_data')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: true })
+
+  if (epochSnap !== hydrationEpoch) return null
+
+  if (error || !data) return []
+
+  return data
+    .map((r) => (r as { item_data: unknown }).item_data)
+    .filter(isCartItem)
+}
+
 export const useCartStore = create<CartState>()((set, get) => {
   if (typeof window !== 'undefined') {
-    supabase.auth.onAuthStateChange((_event, session) => {
-      const email = session?.user?.email ?? null
-      if (get().currentEmail !== email) get().switchUser(email)
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED') return
+      const u = session?.user
+      void get().switchCartUser(u ? { id: u.id, email: u.email ?? null } : null)
     })
   }
 
   return {
-    items: [],
-    currentEmail: null,
+    userId:  null,
+    items:   [],
+    loading: false,
+    ready:   false,
 
-    /**
-     * Logout (email=null): persist signed-in cart, show empty guest cart.
-     * Login: merge guest lines into saved account cart, clear guest bucket.
-     */
-    switchUser: (email) => {
-      const state = get()
-      if (state.currentEmail === email) return
+    switchCartUser: async (user) => {
+      if (!user?.id) {
+        hydrationEpoch++
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('aahvani-cart-guest')
+            localStorage.removeItem('aahvani-cart')
+            localStorage.removeItem('aahvani-wl-guest')
+          } catch {
+            /* ignore */
+          }
+        }
+        set({ userId: null, items: [], loading: false, ready: true })
+        return
+      }
 
-      saveRaw(state.currentEmail, state.items)
+      if (get().userId === user.id && get().ready) {
+        return
+      }
 
-      if (email) {
-        const savedAccount = loadRaw(email)
-        const guestLines = state.currentEmail === null ? state.items : []
-        const merged = mergeCarts(savedAccount, guestLines)
-        saveRaw(email, merged)
-        saveRaw(null, [])
-        set({ currentEmail: email, items: merged })
+      hydrationEpoch++
+
+      set({ userId: user.id, loading: true, ready: true })
+      const rows = await fetchCartRows(user.id)
+      if (rows === null) {
+        set({ loading: false })
+        return
+      }
+      set({ items: rows, loading: false })
+    },
+
+    addToCart: async (item) => {
+      let uid = get().userId
+      if (!uid) {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error || !user?.id) return false
+        await get().switchCartUser({ id: user.id, email: user.email ?? null })
+        uid = get().userId
+        if (!uid) return false
+      }
+
+      hydrationEpoch++
+
+      const prev = get().items
+      const idx = prev.findIndex((i) => i.id === item.id && i.size === item.size)
+      let next: CartItem[]
+      if (idx !== -1) {
+        next = [...prev]
+        next[idx] = {
+          ...next[idx],
+          quantity: next[idx].quantity + item.quantity,
+        }
       } else {
-        saveRaw(null, [])
-        set({ currentEmail: null, items: [] })
+        next = [...prev, item]
+      }
+
+      set({ items: next })
+
+      const row = (idx !== -1 ? next[idx]! : next[next.length - 1]!)!
+
+      const { error: upsertError } = await supabase.from('cart_items').upsert(
+        {
+          user_id:     uid,
+          product_key: lineKey(row),
+          item_data:   row,
+          updated_at:  new Date().toISOString(),
+        },
+        { onConflict: 'user_id,product_key' },
+      )
+
+      if (upsertError) {
+        hydrationEpoch++
+        const result = await fetchCartRows(uid)
+        if (result === null) {
+          set({ loading: false })
+        } else {
+          set({ items: result, loading: false })
+        }
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[cart] upsert failed:', upsertError.message, upsertError)
+        }
+        return false
+      }
+
+      const result = await fetchCartRows(uid)
+      if (result === null) {
+        set({ loading: false })
+      } else {
+        set({ items: result, loading: false })
+      }
+      return true
+    },
+
+    removeFromCart: async (id, size) => {
+      const uid = get().userId
+      if (!uid) return
+
+      hydrationEpoch++
+
+      const prev = get().items
+      const next = prev.filter((i) => !(i.id === id && i.size === size))
+      set({ items: next })
+
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', uid)
+        .eq('product_key', lineKey({ id, size }))
+
+      if (error) {
+        const reconciled = await fetchCartRows(uid)
+        if (reconciled !== null) set({ items: reconciled })
       }
     },
 
-    addToCart: (item) =>
-      set((state) => {
-        const idx = state.items.findIndex(
-          (i) => i.id === item.id && i.size === item.size
-        )
-        let next: CartItem[]
-        if (idx !== -1) {
-          next = [...state.items]
-          next[idx] = {
-            ...next[idx],
-            quantity: next[idx].quantity + item.quantity,
-          }
-        } else {
-          next = [...state.items, item]
+    updateQuantity: async (id, size, quantity) => {
+      const uid = get().userId
+      if (!uid) return
+
+      if (quantity < 1) {
+        await get().removeFromCart(id, size)
+        return
+      }
+
+      hydrationEpoch++
+
+      const prev = get().items
+      const next = prev.map((i) =>
+        i.id === id && i.size === size ? { ...i, quantity } : i,
+      )
+      set({ items: next })
+
+      const row = next.find((i) => i.id === id && i.size === size)
+      if (!row) return
+
+      const { error } = await supabase.from('cart_items').upsert(
+        {
+          user_id:     uid,
+          product_key: lineKey(row),
+          item_data:   row,
+          updated_at:  new Date().toISOString(),
+        },
+        { onConflict: 'user_id,product_key' },
+      )
+
+      if (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[cart] quantity upsert failed:', error.message, error)
         }
-        saveRaw(state.currentEmail, next)
-        return { items: next }
-      }),
+        const reconciled = await fetchCartRows(uid)
+        if (reconciled !== null) set({ items: reconciled })
+      }
+    },
 
-    removeFromCart: (id, size) =>
-      set((state) => {
-        const next = state.items.filter((i) => !(i.id === id && i.size === size))
-        saveRaw(state.currentEmail, next)
-        return { items: next }
-      }),
+    clearCart: async () => {
+      hydrationEpoch++
 
-    updateQuantity: (id, size, quantity) =>
-      set((state) => {
-        const next = state.items.map((i) =>
-          i.id === id && i.size === size ? { ...i, quantity } : i
-        )
-        saveRaw(state.currentEmail, next)
-        return { items: next }
-      }),
-
-    clearCart: () => {
-      const { currentEmail } = get()
-      saveRaw(currentEmail, [])
+      const uid = get().userId
+      if (!uid) {
+        set({ items: [] })
+        return
+      }
       set({ items: [] })
+      const { error } = await supabase.from('cart_items').delete().eq('user_id', uid)
+      if (error) {
+        const reconciled = await fetchCartRows(uid)
+        if (reconciled !== null) set({ items: reconciled })
+      }
     },
 
     getTotal: () =>
@@ -184,9 +265,17 @@ export const useCartStore = create<CartState>()((set, get) => {
   }
 })
 
-/** Hydrate from localStorage on client only — avoids SSR / hydration mismatches */
 if (typeof window !== 'undefined') {
-  const email = getEmailSync()
-  runOneTimeLegacyMigration(email)
-  useCartStore.setState({ currentEmail: email, items: loadRaw(email) })
+  void supabase.auth
+    .getUser()
+    .then(({ data: { user }, error }) => {
+      if (error || !user?.id) {
+        void useCartStore.getState().switchCartUser(null)
+        return
+      }
+      void useCartStore.getState().switchCartUser({ id: user.id, email: user.email ?? null })
+    })
+    .catch(() => {
+      /* Network errors: leave store; onAuthStateChange may hydrate later */
+    })
 }

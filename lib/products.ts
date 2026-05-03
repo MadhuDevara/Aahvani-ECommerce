@@ -15,6 +15,8 @@ export interface Product {
   sku: string
   /** From Supabase when provided in admin */
   description?: string
+  /** From Supabase `sizes` when set in admin */
+  sizes?: string[]
 }
 
 /** URL segment for product detail: Supabase row `id` via `routeId`, else numeric `id`, else `sku`. */
@@ -29,6 +31,13 @@ export function numericProductIdFromRow(row: Record<string, unknown>): number {
   if (typeof v === 'number' && Number.isFinite(v)) return v
   if (typeof v === 'string' && /^\s*\d+\s*$/.test(v)) return Number(v.trim())
   return 0
+}
+
+function normalizeSizesFromRow(v: unknown): string[] | undefined {
+  if (v == null) return undefined
+  if (!Array.isArray(v)) return undefined
+  const out = v.filter((x): x is string => typeof x === 'string' && x.trim() !== '')
+  return out.length ? out : undefined
 }
 
 export function mapSupabaseRowToProduct(row: Record<string, unknown>): Product {
@@ -49,6 +58,7 @@ export function mapSupabaseRowToProduct(row: Record<string, unknown>): Product {
     description:   row.description != null && String(row.description).trim() !== ''
       ? String(row.description)
       : undefined,
+    sizes:         normalizeSizesFromRow(row.sizes),
   }
 }
 

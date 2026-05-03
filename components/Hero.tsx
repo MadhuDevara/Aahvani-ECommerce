@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen bg-[#FDF6EC] flex items-center justify-center overflow-hidden px-4">
+    <section className="relative min-h-screen bg-[#FDF6EC] flex items-center justify-center px-4 pb-24 sm:pb-28">
       {/* Decorative concentric rings */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full border border-[#C6973F]/10" />
@@ -48,10 +48,15 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll hint */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" aria-hidden="true">
-        <span className="text-[0.55rem] tracking-[0.3em] uppercase text-[#1A1A1A]/30">Scroll</span>
-        <div className="w-px h-10 bg-gradient-to-b from-[#C6973F]/50 to-transparent" />
+      {/* Scroll hint — inset-x + flex center avoids clip from overflow; rings stay clipped in inner layer */}
+      <div
+        className="pointer-events-none absolute inset-x-0 z-10 flex flex-col items-center gap-2 px-4 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(1.75rem+env(safe-area-inset-bottom,0px))]"
+        aria-hidden="true"
+      >
+        <span className="whitespace-nowrap text-center text-[0.55rem] uppercase text-[#1A1A1A]/35 tracking-[0.16em] sm:tracking-[0.26em]">
+          Scroll
+        </span>
+        <div className="h-10 w-px shrink-0 bg-gradient-to-b from-[#C6973F]/50 to-transparent" />
       </div>
     </section>
   )

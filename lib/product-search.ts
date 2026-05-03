@@ -17,7 +17,7 @@ export async function supabaseSearchProducts(q: string, limit = 60): Promise<Pro
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .or(`name.ilike.${term},category.ilike.${term},material.ilike.${term},sku.ilike.${term}`)
+    .or(`name.ilike.${term},category.ilike.${term},material.ilike.${term},description.ilike.${term}`)
     .limit(limit)
 
   if (error || !data?.length) return []

@@ -16,7 +16,7 @@ import {
   Package,
   RefreshCw,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchAdminOrdersRows, patchAdminOrderStatus } from '@/lib/admin-orders-client'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
 const PAGE_SIZE = 8
@@ -167,7 +167,7 @@ function mapDbOrder(row: Record<string, unknown>): Order {
   return {
     id:             String(row.id ?? ''),
     customer:       String(row.customer_name ?? row.customer ?? ''),
-    email:          String(row.customer_email ?? row.email ?? ''),
+    email:          String(row.user_email ?? row.customer_email ?? row.email ?? ''),
     items:          Array.isArray(row.items) ? (row.items as OrderItem[]) : [],
     total:          Number(row.total ?? 0),
     status:         (row.status as OrderStatus) ?? 'Processing',
@@ -196,12 +196,9 @@ export default function AdminOrdersPage() {
   const fetchOrders = useCallback(async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (!error && data) {
-        setOrders(data.map(mapDbOrder))
+      const { ok, orders } = await fetchAdminOrdersRows()
+      if (ok) {
+        setOrders(orders.map(mapDbOrder))
         setFromDb(true)
       } else {
         setOrders([])
@@ -235,11 +232,7 @@ export default function AdminOrdersPage() {
   const updateStatus = async (id: string, status: OrderStatus) => {
     setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o))
     if (fromDb) {
-      try {
-        await supabase.from('orders').update({ status }).eq('id', id)
-      } catch {
-        // status updated locally at minimum
-      }
+      void patchAdminOrderStatus(id, status)
     }
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -14,12 +14,20 @@ import { supabase } from '@/lib/supabase'
 
 const CATEGORIES = ['Rings', 'Earrings', 'Necklaces', 'Bracelets', 'Bangles', 'Pendants', 'Sets']
 const MATERIALS  = ['Gold', 'Silver', 'Platinum', 'Rose Gold', 'Kundan', 'Jadau', 'Meenakari', 'Diamond', 'Pearl', 'Mixed Metals']
+const PREDEFINED_SIZES = ['S', 'M', 'L', 'XL', 'XXL', 'Free Size']
+
+function sizesFromRow(raw: unknown): string[] {
+  if (!raw || !Array.isArray(raw)) return []
+  const predefined = PREDEFINED_SIZES as readonly string[]
+  return raw.filter((s): s is string => typeof s === 'string' && predefined.includes(s))
+}
 
 interface FormData {
   name:        string
   description: string
   category:    string
   material:    string
+  sizes:       string[]
   price:       string
   salePrice:   string
   stock:       string
@@ -29,6 +37,7 @@ interface FormData {
 
 const EMPTY: FormData = {
   name: '', description: '', category: '', material: '',
+  sizes: [],
   price: '', salePrice: '', stock: '', featured: false,
   images: ['', '', '', ''],
 }
@@ -61,6 +70,84 @@ function FieldError({ msg }: { msg?: string }) {
   )
 }
 
+function ComboBox({
+  value,
+  onChange,
+  options,
+  placeholder,
+  error,
+}: {
+  value: string
+  onChange: (value: string) => void
+  options: readonly string[]
+  placeholder: string
+  error?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  const q = value.trim().toLowerCase()
+  const filtered = q
+    ? options.filter((o) => o.toLowerCase().includes(q))
+    : [...options]
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
+  const inputClass =
+    `w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${error ? 'border-red-300' : 'border-[#1A1A1A]/12'}`
+
+  return (
+    <div ref={rootRef} className="relative">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        autoComplete="off"
+        aria-expanded={open}
+        aria-autocomplete="list"
+        className={inputClass}
+      />
+      {open && filtered.length > 0 && (
+        <ul
+          className="absolute z-20 left-0 right-0 top-full mt-0.5 max-h-48 overflow-y-auto border border-[#1A1A1A]/12 bg-white shadow-md py-1"
+          role="listbox"
+        >
+          {filtered.map((opt) => (
+            <li key={opt} role="presentation">
+              <button
+                type="button"
+                role="option"
+                className="w-full text-left px-3 py-2 text-sm text-[#1A1A1A] hover:bg-[#FAFAF8] transition-colors"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onChange(opt)
+                  setOpen(false)
+                }}
+              >
+                {opt}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function EditProductPage() {
   const router    = useRouter()
   const { id }    = useParams<{ id: string }>()
@@ -83,6 +170,12 @@ export default function EditProductPage() {
       return { ...f, images: imgs }
     })
 
+  const toggleSize = (size: string) =>
+    setForm((f) => ({
+      ...f,
+      sizes: f.sizes.includes(size) ? f.sizes.filter((s) => s !== size) : [...f.sizes, size],
+    }))
+
   // ── Load existing product ───────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return
@@ -103,6 +196,7 @@ export default function EditProductPage() {
           description: String(data.description ?? ''),
           category:    String(data.category    ?? ''),
           material:    String(data.material    ?? ''),
+          sizes:       sizesFromRow(data.sizes),
           price:       String(data.price       ?? ''),
           salePrice:   String(data.discount_price ?? ''),
           stock:       String(data.stock       ?? ''),
@@ -134,6 +228,7 @@ export default function EditProductPage() {
         stock:          Number(form.stock),
         is_featured:    form.featured,
         images:         form.images.filter((img) => img.trim() !== ''),
+        sizes:          form.sizes,
       })
       .eq('id', id)
 
@@ -238,31 +333,52 @@ export default function EditProductPage() {
                   <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
                     Category <span className="text-red-400">*</span>
                   </label>
-                  <select
+                  <ComboBox
                     value={form.category}
-                    onChange={(e) => set('category', e.target.value)}
-                    aria-label="Product category"
-                    className={`w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.category ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
-                  >
-                    <option value="">Select category…</option>
-                    {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-                  </select>
+                    onChange={(val) => set('category', val)}
+                    options={CATEGORIES}
+                    placeholder="Select or type category…"
+                    error={!!errors.category}
+                  />
                   <FieldError msg={errors.category} />
                 </div>
                 <div>
                   <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
                     Material <span className="text-red-400">*</span>
                   </label>
-                  <select
+                  <ComboBox
                     value={form.material}
-                    onChange={(e) => set('material', e.target.value)}
-                    aria-label="Product material"
-                    className={`w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.material ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
-                  >
-                    <option value="">Select material…</option>
-                    {MATERIALS.map((m) => <option key={m}>{m}</option>)}
-                  </select>
+                    onChange={(val) => set('material', val)}
+                    options={MATERIALS}
+                    placeholder="Select or type material…"
+                    error={!!errors.material}
+                  />
                   <FieldError msg={errors.material} />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                  SIZES
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {PREDEFINED_SIZES.map((size) => {
+                    const selected = form.sizes.includes(size)
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => toggleSize(size)}
+                        className={`px-3 py-2 text-xs font-medium border transition-all duration-150 ${
+                          selected
+                            ? 'border-[#C6973F] text-[#C6973F]'
+                            : 'border-[#1A1A1A]/12 text-[#1A1A1A]/50'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>

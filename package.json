@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/run-dev.cjs",
+    "dev:turbo": "node scripts/run-dev.cjs --turbo",
+    "dev:bg": "node scripts/run-dev-detached.cjs",
+    "dev:bg:turbo": "node scripts/run-dev-detached.cjs --turbo",
+    "dev:stop": "node scripts/dev-stop.cjs",
+    "dev:new-window": "node scripts/dev-new-window.cjs",
+    "kill-port:3000": "node scripts/kill-port-3000.cjs",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

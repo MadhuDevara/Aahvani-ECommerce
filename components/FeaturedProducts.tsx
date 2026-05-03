@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Heart, ShoppingBag, Gem } from 'lucide-react'
+import { useRouter, usePathname } from 'next/navigation'
+import { ShoppingBag } from 'lucide-react'
 import { inr, mapSupabaseRowToProduct, productRouteId, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
-import { useWishlistStore } from '@/lib/wishlistStore'
+import { useWishlistStore, wishlistItemFromProduct } from '@/lib/wishlistStore'
+import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
+import { loginPath } from '@/lib/login-path'
 import { supabase } from '@/lib/supabase'
+import { hasAuthSession } from '@/lib/has-auth-session'
 
 export default function FeaturedProducts() {
+  const router          = useRouter()
+  const pathname        = usePathname()
   const [featured, setFeatured]   = useState<Product[]>([])
   const [ready, setReady]         = useState(false)
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
@@ -19,25 +25,31 @@ export default function FeaturedProducts() {
 
   useEffect(() => {
     let cancelled = false
-    supabase
-      .from('products')
-      .select('*')
-      .eq('is_featured', true)
-      .limit(6)
-      .then(({ data, error }) => {
+    const run = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_featured', true)
+          .limit(6)
         if (cancelled) return
         if (!error && data?.length) {
           setFeatured(data.map(mapSupabaseRowToProduct))
         } else {
           setFeatured([])
         }
-        setReady(true)
-      })
+      } catch {
+        if (!cancelled) setFeatured([])
+      } finally {
+        if (!cancelled) setReady(true)
+      }
+    }
+    void run()
     return () => { cancelled = true }
   }, [])
 
-  const handleAddToCart = (product: Product) => {
-    addToCart({
+  const handleAddToCart = async (product: Product) => {
+    const ok = await addToCart({
       id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
@@ -47,6 +59,10 @@ export default function FeaturedProducts() {
       category:      product.category,
       bg:            product.bg,
     })
+    if (!ok) {
+      if (!(await hasAuthSession())) router.push(loginPath(pathname || '/'))
+      return
+    }
     const rid = productRouteId(product)
     setAddedIds((prev) => new Set(prev).add(rid))
     setTimeout(
@@ -96,30 +112,29 @@ export default function FeaturedProducts() {
                 key={rowKey}
                 className="group bg-white hover:shadow-[0_12px_48px_rgba(198,151,63,0.12)] transition-shadow duration-300"
               >
-                <Link href={`/shop/${encodeURIComponent(rid)}`} className="block">
-                  <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
-                    {product.label && (
-                      <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
+                <ProductTileWithWishlist
+                  href={`/shop/${encodeURIComponent(rid)}`}
+                  productName={product.name}
+                  bgClassName={product.bg}
+                  wishlisted={productWishlisted}
+                  onWishlistClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    void (async () => {
+                      const ok = await toggleWishlist(wishlistItemFromProduct(product))
+                      if (!ok && !(await hasAuthSession())) {
+                        router.push(loginPath(pathname || '/'))
+                      }
+                    })()
+                  }}
+                  label={
+                    product.label ? (
+                      <span className="pointer-events-none absolute top-3 left-3 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
                         {product.label}
                       </span>
-                    )}
-                    <button
-                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: rid, name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
-                      className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
-                      aria-label={productWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                    >
-                      <Heart
-                        size={14}
-                        strokeWidth={1.5}
-                        className={productWishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
-                      />
-                    </button>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
-                      <Gem size={64} strokeWidth={0.8} className="text-[#C6973F]" />
-                    </div>
-                    <div className="absolute inset-0 bg-[#C6973F]/0 group-hover:bg-[#C6973F]/4 transition-colors duration-300" />
-                  </div>
-                </Link>
+                    ) : null
+                  }
+                />
 
                 <div className="p-5">
                   <Link href={`/shop/${encodeURIComponent(rid)}`}>

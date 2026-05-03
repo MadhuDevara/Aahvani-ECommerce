@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Search, Package, Truck, CheckCircle, Clock, MapPin, AlertCircle, Check } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 
 function GoldDivider() {
   return (
@@ -99,31 +98,25 @@ export default function TrackOrderPage() {
     setNotFound(false)
     setResult(null)
 
-    const oid   = orderId.trim()
-    const em    = email.trim().toLowerCase()
+    const oid = orderId.trim()
+    const em  = email.trim()
 
     try {
-      let row: Record<string, unknown> | null = null
-
-      const byNumber = await supabase.from('orders').select('*').eq('order_number', oid).maybeSingle()
-      if (!byNumber.error && byNumber.data) row = byNumber.data as Record<string, unknown>
-
-      if (!row) {
-        const byId = await supabase.from('orders').select('*').eq('id', oid).maybeSingle()
-        if (!byId.error && byId.data) row = byId.data as Record<string, unknown>
+      const res = await fetch('/api/orders/track', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:     JSON.stringify({ orderNumber: oid, email: em }),
+      })
+      if (!res.ok) {
+        setNotFound(true)
+        return
       }
-
+      const payload = (await res.json()) as { order?: Record<string, unknown> }
+      const row = payload.order
       if (!row) {
         setNotFound(true)
         return
       }
-
-      const rowEmail = String(row.user_email ?? row.customer_email ?? '').toLowerCase()
-      if (rowEmail !== em) {
-        setNotFound(true)
-        return
-      }
-
       setResult(mapRowToTrackResult(row))
     } catch {
       setNotFound(true)

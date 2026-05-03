@@ -20,6 +20,7 @@ import {
   Gem,
 } from 'lucide-react'
 import { useCartStore } from '@/lib/cartStore'
+import { loginPath } from '@/lib/login-path'
 import { supabase } from '@/lib/supabase'
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
@@ -147,6 +148,9 @@ function McIcon() {
 export default function CheckoutPage() {
   const router  = useRouter()
   const { items, getTotal, clearCart } = useCartStore()
+  const cartUserId    = useCartStore((s) => s.userId)
+  const cartReady     = useCartStore((s) => s.ready)
+  const cartLoading   = useCartStore((s) => s.loading)
 
   const [mounted,   setMounted]   = useState(false)
   const [authReady, setAuthReady] = useState(false)
@@ -167,7 +171,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        router.replace('/auth/login?next=/checkout')
+        router.replace(loginPath('/checkout'))
         return
       }
       // Pre-fill email from session
@@ -177,11 +181,13 @@ export default function CheckoutPage() {
     })
   }, [router])
 
-  // ── Cart guard (runs after mount so localStorage is available) ──────────────
+  // ── Cart guard: wait for server-backed cart, then send empty carts to /cart ─
   useEffect(() => {
-    if (!mounted) return
-    if (items.length === 0 && !placed) router.replace('/shop')
-  }, [mounted, items.length, placed, router])
+    if (!mounted || !authReady) return
+    if (!cartReady || cartLoading) return
+    if (!cartUserId) return
+    if (items.length === 0 && !placed) router.replace('/cart')
+  }, [mounted, authReady, cartReady, cartLoading, cartUserId, items.length, placed, router])
 
   // ── Derived totals ──────────────────────────────────────────────────────────
   const deliveryFee = DELIVERY_OPTIONS.find((o) => o.id === delivery)!.fee
@@ -227,12 +233,20 @@ export default function CheckoutPage() {
     const orderNumber = `AHV-${Date.now().toString().slice(-8)}`
 
     const { data: sessionData } = await supabase.auth.getSession()
-    const userId = sessionData.session?.user.id ?? null
+    const sessionUser = sessionData.session?.user
+    const userId        = sessionUser?.id ?? null
+    const accountEmail  = (sessionUser?.email ?? '').trim() || form.email.trim()
+
+    if (!userId) {
+      alert('You must be signed in to place an order.')
+      setPlacing(false)
+      return
+    }
 
     const { error } = await supabase.from('orders').insert({
       order_number:    orderNumber,
       user_id:         userId,
-      user_email:      form.email.trim(),
+      user_email:      accountEmail,
       items:           items.map((i) => ({
         name:     i.name,
         size:     i.size,
@@ -259,7 +273,7 @@ export default function CheckoutPage() {
       return
     }
 
-    clearCart()
+    await clearCart()
     setPlacing(false)
     setPlaced(true)
   }

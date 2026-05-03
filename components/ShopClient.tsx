@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
   SlidersHorizontal,
   X,
@@ -19,6 +19,10 @@ import {
 import { inr, productRouteId, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
+import { loginPath } from '@/lib/login-path'
+import { hasAuthSession } from '@/lib/has-auth-session'
+import { wishlistItemFromProduct } from '@/lib/wishlistStore'
+import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -82,18 +86,30 @@ function StarRating({ value }: { value: number }) {
 
 interface ProductCardProps {
   product: Product
-  isWishlisted: boolean
-  onToggleWishlist: (product: Product) => void
   listView?: boolean
 }
 
-function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: ProductCardProps) {
+function ProductCard({ product, listView }: ProductCardProps) {
+  const router            = useRouter()
+  const pathname          = usePathname()
+  const addToCart         = useCartStore((s) => s.addToCart)
+  const wishlistItems     = useWishlistStore((s) => s.items)
+  const toggleWishlistStore = useWishlistStore((s) => s.toggleWishlist)
+  const isWishlisted      = wishlistItems.some((i) => i.id === productRouteId(product))
   const discount    = Math.round((1 - product.salePrice / product.originalPrice) * 100)
-  const addToCart   = useCartStore((s) => s.addToCart)
   const [added, setAdded] = useState(false)
 
-  const handleAddToCart = () => {
-    addToCart({
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const ok = await toggleWishlistStore(wishlistItemFromProduct(product))
+    if (!ok && !(await hasAuthSession())) {
+      router.push(loginPath(pathname || '/shop'))
+    }
+  }
+
+  const handleAddToCart = async () => {
+    const ok = await addToCart({
       id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
@@ -103,6 +119,10 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
       category:      product.category,
       bg:            product.bg,
     })
+    if (!ok) {
+      if (!(await hasAuthSession())) router.push(loginPath(pathname || '/shop'))
+      return
+    }
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }
@@ -111,16 +131,22 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
     const listHref = `/shop/${encodeURIComponent(productRouteId(product))}`
     return (
       <div className="group flex bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.10)] transition-shadow duration-300">
-        <Link href={listHref} className={`relative w-36 sm:w-44 flex-shrink-0 ${product.bg} overflow-hidden`}>
-          {product.label && (
-            <span className="absolute top-2 left-2 z-10 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
-              {product.label}
-            </span>
-          )}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
-            <Gem size={44} strokeWidth={0.8} className="text-[#C6973F]" />
+        <div
+          role="presentation"
+          onClick={() => router.push(listHref)}
+          className={`relative w-36 sm:w-44 flex-shrink-0 cursor-pointer overflow-hidden ${product.bg}`}
+        >
+          <div className="pointer-events-none absolute inset-0">
+            {product.label && (
+              <span className="absolute top-2 left-2 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
+                {product.label}
+              </span>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
+              <Gem size={44} strokeWidth={0.8} className="text-[#C6973F]" />
+            </div>
           </div>
-        </Link>
+        </div>
         <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
@@ -129,11 +155,15 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
                   {product.name}
                 </h3>
               </Link>
-              <button
-                onClick={() => onToggleWishlist(product)}
-                className="flex-shrink-0 w-7 h-7 flex items-center justify-center hover:text-[#C6973F] transition-colors duration-200"
-                aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-              >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                void handleWishlist(e)
+              }}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center hover:text-[#C6973F] transition-colors duration-200"
+              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
                 <Heart
                   size={14}
                   strokeWidth={1.5}
@@ -151,7 +181,11 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
               <span className="text-[0.58rem] text-emerald-600 font-medium">{discount}% off</span>
             </div>
             <button
-              onClick={handleAddToCart}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                void handleAddToCart()
+              }}
               className={`flex items-center gap-1.5 px-3.5 py-2 border text-[0.62rem] tracking-[0.14em] uppercase font-medium transition-all duration-200 ${
                 added ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-[#C6973F] text-[#C6973F] hover:bg-[#C6973F] hover:text-white'
               }`}
@@ -169,28 +203,20 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
 
   return (
     <div className="group bg-white hover:shadow-[0_12px_48px_rgba(198,151,63,0.12)] transition-shadow duration-300">
-      <Link href={shopHref} className={`relative block aspect-square ${product.bg} overflow-hidden`}>
-        {product.label && (
-          <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
-            {product.label}
-          </span>
-        )}
-        <button
-          onClick={(e) => { e.preventDefault(); onToggleWishlist(product) }}
-          className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart
-            size={14}
-            strokeWidth={1.5}
-            className={isWishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
-          />
-        </button>
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
-          <Gem size={64} strokeWidth={0.8} className="text-[#C6973F]" />
-        </div>
-        <div className="absolute inset-0 bg-[#C6973F]/0 group-hover:bg-[#C6973F]/4 transition-colors duration-300" />
-      </Link>
+      <ProductTileWithWishlist
+        href={shopHref}
+        productName={product.name}
+        bgClassName={product.bg}
+        wishlisted={isWishlisted}
+        onWishlistClick={handleWishlist}
+        label={
+          product.label ? (
+            <span className="pointer-events-none absolute top-3 left-3 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
+              {product.label}
+            </span>
+          ) : null
+        }
+      />
       <div className="p-4">
         <Link href={shopHref}>
           <h3 className="font-serif text-[0.92rem] font-medium text-[#1A1A1A] mb-1 group-hover:text-[#C6973F] transition-colors duration-200 tracking-wide leading-snug">
@@ -205,7 +231,11 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
           <span className="text-[0.58rem] text-emerald-600 font-medium ml-auto">{discount}% off</span>
         </div>
         <button
-          onClick={handleAddToCart}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            void handleAddToCart()
+          }}
           className={`w-full flex items-center justify-center gap-1.5 py-2.5 border text-[0.65rem] tracking-[0.16em] uppercase font-medium transition-all duration-200 ${
             added ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-[#C6973F] text-[#C6973F] hover:bg-[#C6973F] hover:text-white'
           }`}
@@ -445,10 +475,6 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
   const [view, setView]                   = useState<'grid' | 'list'>('grid')
   const [currentPage, setCurrentPage]     = useState(1)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const wishlistItems       = useWishlistStore((s) => s.items)
-  const toggleWishlistStore = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlistedStore   = (key: string) => wishlistItems.some((i) => i.id === key)
-
   // Sync category filter when URL param or catalog changes
   useEffect(() => {
     const cat = searchParams.get('category') ?? 'All'
@@ -502,11 +528,6 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
   const safePage    = Math.min(currentPage, totalPages)
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-
-  const toggleWishlist = (p: Product) => {
-    const key = productRouteId(p)
-    toggleWishlistStore({ id: key, name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
-  }
 
   const updateFilters = (patch: Partial<FilterState>) =>
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -718,24 +739,13 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
             ) : view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
                 {filteredProducts.map((p) => (
-                  <ProductCard
-                    key={productRouteId(p)}
-                    product={p}
-                    isWishlisted={isWishlistedStore(productRouteId(p))}
-                    onToggleWishlist={toggleWishlist}
-                  />
+                  <ProductCard key={productRouteId(p)} product={p} />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 {filteredProducts.map((p) => (
-                  <ProductCard
-                    key={productRouteId(p)}
-                    product={p}
-                    isWishlisted={isWishlistedStore(productRouteId(p))}
-                    onToggleWishlist={toggleWishlist}
-                    listView
-                  />
+                  <ProductCard key={productRouteId(p)} product={p} listView />
                 ))}
               </div>
             )}

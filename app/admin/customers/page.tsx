@@ -11,7 +11,7 @@ import {
   ShoppingBag,
   RefreshCw,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { fetchAdminOrdersRows } from '@/lib/admin-orders-client'
 
 const inr      = (n: number) => `₹${n.toLocaleString('en-IN')}`
 const PAGE_SIZE = 8
@@ -70,12 +70,8 @@ export default function AdminCustomersPage() {
   const fetchCustomers = useCallback(async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('user_email, contact, total, created_at')
-        .order('created_at', { ascending: true })
-
-      if (error || !data) throw error
+      const { ok, orders: data } = await fetchAdminOrdersRows()
+      if (!ok || !data) throw new Error('orders fetch failed')
 
       // Aggregate by user_email
       const map = new Map<string, {

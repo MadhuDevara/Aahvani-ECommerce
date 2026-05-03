@@ -13,6 +13,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { fetchAdminOrdersRows } from '@/lib/admin-orders-client'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
@@ -111,13 +112,9 @@ export default function AdminDashboard() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      // ── 1. Fetch all orders ──────────────────────────────────────────────────
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      const orderList = orders ?? []
+      // ── 1. Fetch all orders (service role via admin API — bypasses RLS) ───────
+      const { ok, orders } = await fetchAdminOrdersRows()
+      const orderList = ok ? orders : []
 
       // ── 2. Fetch product count ───────────────────────────────────────────────
       const { count: productCount } = await supabase

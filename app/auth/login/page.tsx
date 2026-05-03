@@ -2,9 +2,9 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -20,8 +20,15 @@ function GoogleIcon() {
   )
 }
 
-export default function LoginPage() {
+function safeNextPath(raw: string | null): string {
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/'
+  return raw
+}
+
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextAfterLogin = safeNextPath(searchParams.get('next'))
 
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
@@ -48,7 +55,7 @@ export default function LoginPage() {
         password,
       })
       if (authError) throw authError
-      router.push('/')
+      router.push(nextAfterLogin)
       router.refresh()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
@@ -60,7 +67,7 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}${nextAfterLogin}` },
     })
   }
 
@@ -217,5 +224,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FDF6EC] flex items-center justify-center">
+          <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   ShoppingBag,
   Minus,
@@ -15,6 +16,7 @@ import {
   X,
 } from 'lucide-react'
 import { useCartStore, type CartItem } from '@/lib/cartStore'
+import { loginPath } from '@/lib/login-path'
 
 const inr = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`
 const FREE_DELIVERY_THRESHOLD = 999
@@ -142,6 +144,10 @@ function CartItemRow({ item }: { item: CartItem }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function CartClient() {
+  const pathname = usePathname()
+  const userId     = useCartStore((s) => s.userId)
+  const cartReady  = useCartStore((s) => s.ready)
+  const cartLoading = useCartStore((s) => s.loading)
   const { items, clearCart, getTotal } = useCartStore()
   const [mounted, setMounted]           = useState(false)
   const [couponInput, setCouponInput]   = useState('')
@@ -187,7 +193,40 @@ export default function CartClient() {
     )
   }
 
-  // ── Empty cart ─────────────────────────────────────────────────────────────
+  if (!cartReady || (userId && cartLoading)) {
+    return (
+      <div className="min-h-[60vh] bg-[#FDF6EC] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#C6973F]/30 border-t-[#C6973F] rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!userId) {
+    return (
+      <div className="min-h-[65vh] bg-[#FDF6EC] flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="w-20 h-20 mx-auto mb-6 bg-[#C6973F]/10 flex items-center justify-center">
+            <Lock size={34} strokeWidth={1} className="text-[#C6973F]/60" />
+          </div>
+          <h2 className="font-serif text-2xl font-semibold text-[#1A1A1A] mb-2">
+            Sign in to view your cart
+          </h2>
+          <p className="text-sm text-[#1A1A1A]/45 font-light mb-8 leading-relaxed">
+            Your bag is saved to your account and syncs across devices.
+          </p>
+          <Link
+            href={loginPath(pathname || '/cart')}
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-200"
+          >
+            Login
+            <ChevronRight size={13} strokeWidth={1.5} />
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Empty cart (authenticated) ─────────────────────────────────────────────
   if (items.length === 0) {
     return (
       <div className="min-h-[65vh] bg-[#FDF6EC] flex items-center justify-center px-4">

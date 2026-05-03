@@ -6,10 +6,12 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package, LogOut, User, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
+import { loginPath } from '@/lib/login-path'
 import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { inr, productRouteId, type Product } from '@/lib/products'
 import { supabaseSearchProducts } from '@/lib/product-search'
+import { useIsClient } from '@/lib/use-is-client'
 
 const NAV_LINKS = [
   { href: '/',            label: 'Home'        },
@@ -32,7 +34,7 @@ export default function Navbar() {
 
   const [isScrolled, setIsScrolled]   = useState(false)
   const [mobileOpen, setMobileOpen]   = useState(false)
-  const [mounted, setMounted]         = useState(false)
+  const mounted = useIsClient()
   const [user, setUser]               = useState<SupabaseUser | null>(null)
   const [dropdownOpen, setDropdown]   = useState(false)
 
@@ -42,21 +44,35 @@ export default function Navbar() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchNavResults, setSearchNavResults] = useState<Product[]>([])
   const [searchNavLoading, setSearchNavLoading] = useState(false)
+  const [popularTerms, setPopularTerms] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!searchOpen) return
+    void supabase.from('products').select('category').then(({ data }) => {
+      const cats = [...new Set(data?.map((r) => r.category).filter(Boolean) as string[])]
+      setPopularTerms(cats)
+    })
+  }, [searchOpen])
 
   useEffect(() => {
     const q = searchQuery.trim()
-    if (!q) {
-      setSearchNavResults([])
-      setSearchNavLoading(false)
-      return
-    }
-    setSearchNavLoading(true)
+    if (!q) return
+    let cancelled = false
     const t = setTimeout(() => {
+      if (cancelled) return
+      setSearchNavLoading(true)
       supabaseSearchProducts(q, 6)
-        .then(setSearchNavResults)
-        .finally(() => setSearchNavLoading(false))
+        .then((rows) => {
+          if (!cancelled) setSearchNavResults(rows)
+        })
+        .finally(() => {
+          if (!cancelled) setSearchNavLoading(false)
+        })
     }, 280)
-    return () => clearTimeout(t)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
   }, [searchQuery])
 
   const openSearch = useCallback(() => {
@@ -90,14 +106,11 @@ export default function Navbar() {
   }, [searchOpen])
 
   const cartCount       = useCartStore((s) => s.getItemCount())
-  const switchCartUser  = useCartStore((s) => s.switchUser)
   const wishlistItems   = useWishlistStore((s) => s.items)
-  const switchUser      = useWishlistStore((s) => s.switchUser)
   const wishlistCount  = wishlistItems.length
+  const showCartBadges = mounted && user && cartCount > 0
+  const showWlBadges   = mounted && user && wishlistCount > 0
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // ── Mount + hydration guard ─────────────────────────────────────────────────
-  useEffect(() => { setMounted(true) }, [])
 
   // ── Scroll shadow ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -106,26 +119,23 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // ── Auth session ────────────────────────────────────────────────────────────
+  // ── Auth session (cart/wishlist sync via store listeners) ────────────────────
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user ?? null
-      setUser(u)
-      const email = u?.email ?? null
-      switchUser(email)
-      switchCartUser(email)
-    })
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setUser(data.session?.user ?? null)
+      })
+      .catch(() => {
+        setUser(null)
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null
-      setUser(u)
-      const email = u?.email ?? null
-      switchUser(email)
-      switchCartUser(email)
+      setUser(session?.user ?? null)
     })
 
     return () => subscription.unsubscribe()
-  }, [switchUser, switchCartUser])
+  }, [])
 
   // ── Close dropdown on outside click ────────────────────────────────────────
   useEffect(() => {
@@ -141,8 +151,8 @@ export default function Navbar() {
   const handleSignOut = () => {
     setDropdown(false)
     setUser(null)
-    void switchUser(null)
-    switchCartUser(null)
+    void useWishlistStore.getState().switchUser(null)
+    void useCartStore.getState().switchCartUser(null)
     // Local scope clears session immediately — never wait on a hung network request
     void supabase.auth.signOut({ scope: 'local' })
     router.push('/')
@@ -201,11 +211,11 @@ export default function Navbar() {
 
             <Link
               href="/wishlist"
-              aria-label={`Wishlist${mounted && wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
+              aria-label={`Wishlist${showWlBadges ? `, ${wishlistCount} items` : ''}`}
               className="relative text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
             >
               <Heart size={18} strokeWidth={1.5} />
-              {mounted && wishlistCount > 0 && (
+              {showWlBadges && (
                 <span className="absolute -top-1 -right-1 bg-[#C6973F] text-white text-[0.6rem] font-semibold rounded-full min-w-[1.1rem] h-[1.1rem] flex items-center justify-center px-0.5 leading-none">
                   {wishlistCount > 99 ? '99+' : wishlistCount}
                 </span>
@@ -214,11 +224,11 @@ export default function Navbar() {
 
             <Link
               href="/cart"
-              aria-label={`Cart${mounted && cartCount > 0 ? `, ${cartCount} items` : ''}`}
+              aria-label={`Cart${showCartBadges ? `, ${cartCount} items` : ''}`}
               className="relative text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1"
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
-              {mounted && cartCount > 0 && (
+              {showCartBadges && (
                 <span className="absolute -top-1 -right-1 bg-[#C6973F] text-white text-[0.6rem] font-semibold rounded-full min-w-[1.1rem] h-[1.1rem] flex items-center justify-center px-0.5 leading-none">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
@@ -287,7 +297,7 @@ export default function Navbar() {
               ) : (
                 /* ── Guest: Login button ── */
                 <Link
-                  href="/auth/login"
+                  href={loginPath(pathname || '/')}
                   className="hidden md:inline-flex items-center px-4 py-1.5 text-[0.7rem] font-medium tracking-[0.14em] uppercase text-[#C6973F] border border-[#C6973F] hover:bg-[#C6973F] hover:text-white transition-all duration-200"
                 >
                   Login
@@ -298,7 +308,7 @@ export default function Navbar() {
             {/* Hamburger — mobile only */}
             <button
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileOpen ? 'true' : 'false'}
+              aria-expanded={mobileOpen}
               className="md:hidden text-[#1A1A1A] hover:text-[#C6973F] transition-colors duration-200 p-1 -mr-1"
               onClick={() => setMobileOpen((prev) => !prev)}
             >
@@ -357,7 +367,7 @@ export default function Navbar() {
               </div>
             ) : (
               <Link
-                href="/auth/login"
+                href={loginPath(pathname || '/')}
                 className="inline-flex items-center gap-2 px-5 py-2 text-[0.7rem] font-medium tracking-[0.14em] uppercase text-[#C6973F] border border-[#C6973F] hover:bg-[#C6973F] hover:text-white transition-all duration-200"
                 onClick={() => setMobileOpen(false)}
               >
@@ -482,21 +492,25 @@ export default function Navbar() {
             {/* Empty state hint */}
             {!searchQuery.trim() && (
               <div className="px-5 py-6">
-                <p className="text-[0.62rem] tracking-[0.2em] uppercase text-[#1A1A1A]/30 font-semibold mb-3">
-                  Popular Searches
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {['Kundan', 'Rings', 'Pearl', 'Silver', 'Earrings', 'Bridal Set'].map((term) => (
-                    <button
-                      key={term}
-                      type="button"
-                      onClick={() => setSearchQuery(term)}
-                      className="px-3 py-1.5 border border-[#1A1A1A]/10 text-xs text-[#1A1A1A]/50 hover:border-[#C6973F]/40 hover:text-[#C6973F] transition-all duration-150"
-                    >
-                      {term}
-                    </button>
-                  ))}
-                </div>
+                {popularTerms.length > 0 && (
+                  <>
+                    <p className="text-[0.62rem] tracking-[0.2em] uppercase text-[#1A1A1A]/30 font-semibold mb-3">
+                      Popular Searches
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {popularTerms.map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => setSearchQuery(term)}
+                          className="px-3 py-1.5 border border-[#1A1A1A]/10 text-xs text-[#1A1A1A]/50 hover:border-[#C6973F]/40 hover:text-[#C6973F] transition-all duration-150"
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
                 <p className="text-[0.6rem] text-[#1A1A1A]/25 font-light mt-5">
                   Press <kbd className="px-1.5 py-0.5 bg-[#1A1A1A]/6 rounded text-[0.6rem]">Enter</kbd> to see all results · <kbd className="px-1.5 py-0.5 bg-[#1A1A1A]/6 rounded text-[0.6rem]">Esc</kbd> to close
                 </p>

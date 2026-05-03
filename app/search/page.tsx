@@ -1,18 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { Search, Gem, Heart, ShoppingBag, ChevronRight } from 'lucide-react'
+import { Search, Gem, ShoppingBag, ChevronRight } from 'lucide-react'
 import { inr, productRouteId, type Product } from '@/lib/products'
 import { supabaseSearchProducts } from '@/lib/product-search'
 import { useCartStore } from '@/lib/cartStore'
-import { useWishlistStore } from '@/lib/wishlistStore'
+import { useWishlistStore, wishlistItemFromProduct } from '@/lib/wishlistStore'
+import { loginPath } from '@/lib/login-path'
+import { hasAuthSession } from '@/lib/has-auth-session'
+import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
 
 // ─── Product card (self-contained, same style as ShopClient) ──────────────────
 
 function ResultCard({ product }: { product: Product }) {
+  const router         = useRouter()
+  const pathname       = usePathname()
   const [added, setAdded] = useState(false)
   const addToCart      = useCartStore((s) => s.addToCart)
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist)
@@ -20,34 +25,41 @@ function ResultCard({ product }: { product: Product }) {
   const wishlisted     = isWishlisted(productRouteId(product))
   const discount       = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 
-  const handleAdd = () => {
-    addToCart({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, quantity: 1, size: 'Free Size', category: product.category, bg: product.bg })
+  const handleAdd = async () => {
+    const ok = await addToCart({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, quantity: 1, size: 'Free Size', category: product.category, bg: product.bg })
+    if (!ok) {
+      if (!(await hasAuthSession())) router.push(loginPath(pathname || '/search'))
+      return
+    }
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }
 
   return (
     <div className="group bg-white border border-[#1A1A1A]/8 hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] hover:border-[#C6973F]/20 transition-all duration-300">
-      <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`} className="block">
-        <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
-          {product.label && (
-            <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
+      <ProductTileWithWishlist
+        href={`/shop/${encodeURIComponent(productRouteId(product))}`}
+        productName={product.name}
+        bgClassName={product.bg}
+        wishlisted={wishlisted}
+        onWishlistClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          void (async () => {
+            const ok = await toggleWishlist(wishlistItemFromProduct(product))
+            if (!ok && !(await hasAuthSession())) {
+              router.push(loginPath(pathname || '/search'))
+            }
+          })()
+        }}
+        label={
+          product.label ? (
+            <span className="pointer-events-none absolute top-3 left-3 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
               {product.label}
             </span>
-          )}
-          <button
-            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
-            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors"
-            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          >
-            <Heart size={13} strokeWidth={1.5} className={wishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/40'} />
-          </button>
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
-            <Gem size={64} strokeWidth={0.8} className="text-[#C6973F]" />
-          </div>
-          <div className="absolute inset-0 bg-[#C6973F]/0 group-hover:bg-[#C6973F]/4 transition-colors duration-300" />
-        </div>
-      </Link>
+          ) : null
+        }
+      />
       <div className="p-5">
         <p className="text-[0.6rem] tracking-[0.15em] uppercase text-[#1A1A1A]/35 font-medium mb-1">{product.category}</p>
         <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>

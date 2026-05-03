@@ -393,12 +393,13 @@ export default function OrdersPage() {
         }
         const email = data.session.user.email ?? ''
         setUserEmail(email)
+        const uid = data.session.user.id
 
         const ORDERS_MS = 15_000
         const query = supabase
           .from('orders')
           .select('*')
-          .eq('user_email', email)
+          .eq('user_id', uid)
           .order('created_at', { ascending: false })
 
         const timedOut = new Promise<{ data: null }>((resolve) => {

@@ -5,9 +5,8 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import AdminSidebar from '@/components/AdminSidebar'
 import { supabase } from '@/lib/supabase'
+import { ADMIN_EMAIL, isAdminEmail } from '@/lib/admin-config'
 import { Gem, Eye, EyeOff } from 'lucide-react'
-
-const ADMIN_EMAIL = 'maddy@dkmstack.com'
 
 function AdminLogin() {
   const [email,    setEmail]    = useState(ADMIN_EMAIL)
@@ -46,9 +45,14 @@ function AdminLogin() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-[0.62rem] tracking-[0.12em] uppercase text-white/30 mb-1.5 font-light">Email</label>
+            <label htmlFor="admin-login-email" className="block text-[0.62rem] tracking-[0.12em] uppercase text-white/30 mb-1.5 font-light">
+              Email
+            </label>
             <input
+              id="admin-login-email"
               type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -98,8 +102,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const user = data.session?.user
-      if (user?.email === ADMIN_EMAIL) {
-        setEmail(user.email)
+      if (user && isAdminEmail(user.email)) {
+        setEmail(user.email ?? '')
         setStatus('auth')
       } else {
         setStatus('unauth')
@@ -108,8 +112,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user
-      if (user?.email === ADMIN_EMAIL) {
-        setEmail(user.email)
+      if (user && isAdminEmail(user.email)) {
+        setEmail(user.email ?? '')
         setStatus('auth')
       } else {
         setStatus('unauth')
