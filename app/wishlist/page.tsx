@@ -133,7 +133,7 @@ export default function WishlistPage() {
               return (
                 <div key={item.id} className="group bg-white border border-[#1A1A1A]/8 hover:shadow-[0_8px_32px_rgba(198,151,63,0.1)] hover:border-[#C6973F]/20 transition-all duration-300">
                   {/* Image */}
-                  <Link href={`/shop/${item.id}`}>
+                  <Link href={`/shop/${encodeURIComponent(item.id)}`}>
                     <div className={`relative aspect-square ${item.bg} overflow-hidden`}>
                       <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
                         <Gem size={72} strokeWidth={0.8} className="text-[#C6973F]" />
@@ -160,7 +160,7 @@ export default function WishlistPage() {
                     <p className="text-[0.62rem] tracking-[0.15em] uppercase text-[#1A1A1A]/35 font-medium mb-1">
                       {item.category}
                     </p>
-                    <Link href={`/shop/${item.id}`}>
+                    <Link href={`/shop/${encodeURIComponent(item.id)}`}>
                       <h3 className="font-serif text-base font-medium text-[#1A1A1A] mb-3 group-hover:text-[#C6973F] transition-colors leading-snug">
                         {item.name}
                       </h3>

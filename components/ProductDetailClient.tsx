@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import {
   ChevronRight,
@@ -20,7 +20,7 @@ import {
   ZapOff,
   Sparkles,
 } from 'lucide-react'
-import { PRODUCTS, inr, type Product } from '@/lib/products'
+import { inr, productRouteId, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
 
@@ -84,11 +84,11 @@ function WhatsAppIcon() {
 function RelatedCard({ product }: { product: Product }) {
   const wishlistItems  = useWishlistStore((s) => s.items)
   const toggleWishlist = useWishlistStore((s) => s.toggleWishlist)
-  const wishlisted     = wishlistItems.some((i) => i.id === (product.sku || String(product.id)))
+  const wishlisted     = wishlistItems.some((i) => i.id === productRouteId(product))
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
   return (
     <div className="group bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
-      <Link href={`/shop/${product.id}`}>
+      <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>
         <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
           {product.label && (
             <span className="absolute top-2 left-2 z-10 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
@@ -96,7 +96,7 @@ function RelatedCard({ product }: { product: Product }) {
             </span>
           )}
           <button
-            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
+            onClick={(e) => { e.preventDefault(); toggleWishlist({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
             className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
@@ -112,7 +112,7 @@ function RelatedCard({ product }: { product: Product }) {
         </div>
       </Link>
       <div className="p-3.5">
-        <Link href={`/shop/${product.id}`}>
+        <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>
           <h3 className="font-serif text-[0.88rem] font-medium text-[#1A1A1A] mb-2 group-hover:text-[#C6973F] transition-colors duration-200 leading-snug">
             {product.name}
           </h3>
@@ -132,16 +132,20 @@ function RelatedCard({ product }: { product: Product }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ProductDetailClient({ productId }: { productId: string }) {
-  const product = PRODUCTS.find((p) => p.id === Number(productId)) ?? PRODUCTS[0]
-
+export default function ProductDetailClient({
+  product,
+  relatedProducts,
+}: {
+  product: Product
+  relatedProducts: Product[]
+}) {
   const [selectedThumb, setSelectedThumb] = useState(0)
   const [selectedSize, setSelectedSize]   = useState('')
   const [quantity, setQuantity]           = useState(1)
   const [activeTab, setActiveTab]         = useState('Description')
   const wishlistItems   = useWishlistStore((s) => s.items)
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
-  const isWishlisted    = wishlistItems.some((i) => i.id === (product.sku || String(product.id)))
+  const isWishlisted    = wishlistItems.some((i) => i.id === productRouteId(product))
   const [copied, setCopied]               = useState(false)
   const [addedToCart, setAddedToCart]     = useState(false)
   const [sizeError, setSizeError]         = useState(false)
@@ -151,11 +155,6 @@ export default function ProductDetailClient({ productId }: { productId: string }
   const sizes   = getSizes(product.category)
   const details = getDetails(product)
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
-
-  const relatedProducts = useMemo(
-    () => PRODUCTS.filter((p) => p.id !== product.id).slice(0, 4),
-    [product.id]
-  )
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href)
@@ -170,7 +169,7 @@ export default function ProductDetailClient({ productId }: { productId: string }
     }
     setSizeError(false)
     addToCart({
-      id:            product.sku || String(product.id),
+      id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
       originalPrice: product.originalPrice,
@@ -386,7 +385,7 @@ export default function ProductDetailClient({ productId }: { productId: string }
                 )}
               </button>
               <button
-                onClick={() => toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg })}
+                onClick={() => toggleWishlist({ id: productRouteId(product), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg })}
                 className={`flex-1 sm:flex-none sm:px-6 flex items-center justify-center gap-2 py-4 border text-[0.72rem] tracking-[0.2em] uppercase font-medium transition-all duration-200 ${
                   isWishlisted
                     ? 'bg-[#C6973F]/10 border-[#C6973F] text-[#C6973F]'
@@ -475,32 +474,40 @@ export default function ProductDetailClient({ productId }: { productId: string }
             {/* Description */}
             {activeTab === 'Description' && (
               <div className="space-y-5">
-                <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
-                  The <strong className="text-[#1A1A1A] font-medium">{product.name}</strong> is a timeless
-                  piece inspired by the royal jewellery traditions of Rajasthan. Each piece is carefully handcrafted
-                  by skilled artisans using age-old Kundan setting techniques, ensuring no two pieces are exactly alike.
-                  The intricate detailing and careful finishing make this an heirloom-quality jewellery piece,
-                  perfect for adding a touch of regal elegance to any ensemble.
-                </p>
-                <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
-                  Whether gifted to a loved one or cherished for yourself, this piece embodies the rich
-                  heritage of Indian craftsmanship — a true invitation to elegance.
-                </p>
-                <ul className="space-y-2.5 pt-2">
-                  {[
-                    'Handcrafted by skilled artisans using traditional techniques',
-                    `${product.material} finish for lasting lustre and durability`,
-                    'Lightweight and comfortable for all-day wear',
-                    'Suitable for weddings, festivals, and special occasions',
-                    'Comes in a premium Aahvani gift box',
-                    'Certificate of authenticity included',
-                  ].map((point) => (
-                    <li key={point} className="flex items-start gap-2.5">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#C6973F] flex-shrink-0" />
-                      <span className="text-sm text-[#1A1A1A]/65 font-light leading-relaxed">{point}</span>
-                    </li>
-                  ))}
-                </ul>
+                {product.description?.trim() ? (
+                  <div className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light whitespace-pre-wrap">
+                    {product.description.trim()}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
+                      The <strong className="text-[#1A1A1A] font-medium">{product.name}</strong> is a timeless
+                      piece inspired by the royal jewellery traditions of Rajasthan. Each piece is carefully handcrafted
+                      by skilled artisans using age-old Kundan setting techniques, ensuring no two pieces are exactly alike.
+                      The intricate detailing and careful finishing make this an heirloom-quality jewellery piece,
+                      perfect for adding a touch of regal elegance to any ensemble.
+                    </p>
+                    <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
+                      Whether gifted to a loved one or cherished for yourself, this piece embodies the rich
+                      heritage of Indian craftsmanship — a true invitation to elegance.
+                    </p>
+                    <ul className="space-y-2.5 pt-2">
+                      {[
+                        'Handcrafted by skilled artisans using traditional techniques',
+                        `${product.material} finish for lasting lustre and durability`,
+                        'Lightweight and comfortable for all-day wear',
+                        'Suitable for weddings, festivals, and special occasions',
+                        'Comes in a premium Aahvani gift box',
+                        'Certificate of authenticity included',
+                      ].map((point) => (
+                        <li key={point} className="flex items-start gap-2.5">
+                          <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#C6973F] flex-shrink-0" />
+                          <span className="text-sm text-[#1A1A1A]/65 font-light leading-relaxed">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
             )}
 
@@ -578,10 +585,9 @@ export default function ProductDetailClient({ productId }: { productId: string }
         </div>
       </div>
 
-      {/* ── Related Products ──────────────────────────────────────────────── */}
+      {relatedProducts.length > 0 && (
       <div className="bg-[#FDF6EC] py-16 border-t border-[#C6973F]/12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="text-center mb-10">
             <p className="text-[0.6rem] tracking-[0.4em] uppercase text-[#C6973F] mb-3">Discover More</p>
             <h2 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">
@@ -596,14 +602,14 @@ export default function ProductDetailClient({ productId }: { productId: string }
             </div>
           </div>
 
-          {/* Cards — horizontal scroll on mobile, 4-col grid on desktop */}
           <div className="flex md:grid md:grid-cols-4 gap-4 overflow-x-auto pb-3 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
             {relatedProducts.map((p) => (
-              <RelatedCard key={p.id} product={p} />
+              <RelatedCard key={productRouteId(p)} product={p} />
             ))}
           </div>
         </div>
       </div>
+      )}
 
     </div>
   )

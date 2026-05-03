@@ -50,84 +50,6 @@ interface Order {
   estimatedDate: string
 }
 
-// ─── Dummy data ────────────────────────────────────────────────────────────────
-
-const ALL_ORDERS: Order[] = [
-  {
-    id: 'AHV-2024-048', customer: 'Priya Sharma',   email: 'priya@example.com',
-    items: [{ name: 'Temple Necklace Set',  size: '18"',       quantity: 1, price: 5499, bg: 'bg-[#F9F0E3]' }],
-    total: 5499, status: 'Delivered',  date: '2 May 2026',
-    address: '12, MG Road', city: 'Mumbai',    state: 'Maharashtra', pincode: '400001',
-    deliveryMethod: 'Standard', paymentMethod: 'UPI', estimatedDate: '7 May 2026',
-  },
-  {
-    id: 'AHV-2024-047', customer: 'Riya Kapoor',    email: 'riya@example.com',
-    items: [{ name: 'Kundan Polki Ring',    size: 'M (6)',      quantity: 1, price: 3499, bg: 'bg-[#F5EBD8]' }],
-    total: 3499, status: 'Shipped',    date: '1 May 2026',
-    address: '17-B, Lajpat Nagar', city: 'Delhi',      state: 'Delhi',       pincode: '110024',
-    deliveryMethod: 'Express', paymentMethod: 'Visa **4242', estimatedDate: '4 May 2026',
-  },
-  {
-    id: 'AHV-2024-046', customer: 'Sneha Reddy',    email: 'sneha@example.com',
-    items: [{ name: 'Meenakari Jhumka',     size: 'Free Size',  quantity: 1, price: 1799, bg: 'bg-[#EFE0C9]' }],
-    total: 1799, status: 'Processing', date: '1 May 2026',
-    address: '5, Koramangala', city: 'Bangalore', state: 'Karnataka',  pincode: '560034',
-    deliveryMethod: 'Standard', paymentMethod: 'Mastercard **8888', estimatedDate: '8 May 2026',
-  },
-  {
-    id: 'AHV-2024-045', customer: 'Anita Nair',     email: 'anita@example.com',
-    items: [
-      { name: 'Jadau Bangle Pair',    size: 'Free Size', quantity: 1, price: 3499, bg: 'bg-[#EDE4D5]' },
-      { name: 'Temple Necklace Set',  size: '18"',       quantity: 1, price: 5499, bg: 'bg-[#F9F0E3]' },
-    ],
-    total: 8998, status: 'Delivered',  date: '30 Apr 2026',
-    address: '22, Residency Road', city: 'Chennai',   state: 'Tamil Nadu',  pincode: '600002',
-    deliveryMethod: 'Express', paymentMethod: 'Net Banking', estimatedDate: '4 May 2026',
-  },
-  {
-    id: 'AHV-2024-044', customer: 'Meera Joshi',    email: 'meera@example.com',
-    items: [{ name: 'Diamond Cut Bracelet',  size: 'Free Size', quantity: 1, price: 2299, bg: 'bg-[#F0E8D9]' }],
-    total: 2299, status: 'Cancelled',  date: '29 Apr 2026',
-    address: '8, Civil Lines', city: 'Jaipur',    state: 'Rajasthan',   pincode: '302006',
-    deliveryMethod: 'Standard', paymentMethod: 'PhonePe', estimatedDate: '5 May 2026',
-  },
-  {
-    id: 'AHV-2024-043', customer: 'Kavya Menon',    email: 'kavya@example.com',
-    items: [{ name: 'Pearl Drop Earrings',   size: 'Free Size', quantity: 2, price: 1499, bg: 'bg-[#EEE8DD]' }],
-    total: 2998, status: 'Delivered',  date: '29 Apr 2026',
-    address: '3, Park Street', city: 'Kolkata',   state: 'West Bengal', pincode: '700016',
-    deliveryMethod: 'Standard', paymentMethod: 'UPI', estimatedDate: '4 May 2026',
-  },
-  {
-    id: 'AHV-2024-042', customer: 'Divya Pillai',   email: 'divya@example.com',
-    items: [{ name: 'Antique Gold Necklace', size: '20"',       quantity: 1, price: 4799, bg: 'bg-[#F3E9D8]' }],
-    total: 4799, status: 'Shipped',    date: '28 Apr 2026',
-    address: '1, Connaught Place', city: 'New Delhi', state: 'Delhi', pincode: '110001',
-    deliveryMethod: 'Express', paymentMethod: 'Amazon Pay', estimatedDate: '2 May 2026',
-  },
-  {
-    id: 'AHV-2024-041', customer: 'Pooja Singh',    email: 'pooja@example.com',
-    items: [{ name: 'Silver Toe Ring Set',   size: 'Free Size', quantity: 1, price:  899, bg: 'bg-[#E8E0D3]' }],
-    total:  899, status: 'Processing', date: '28 Apr 2026',
-    address: '45, Shivaji Nagar', city: 'Pune',      state: 'Maharashtra', pincode: '411005',
-    deliveryMethod: 'Standard', paymentMethod: 'Paytm', estimatedDate: '3 May 2026',
-  },
-  {
-    id: 'AHV-2024-040', customer: 'Lakshmi Rao',    email: 'lakshmi@example.com',
-    items: [{ name: 'Gold Hoops Earrings',   size: 'Free Size', quantity: 1, price: 1299, bg: 'bg-[#F2EBE0]' }],
-    total: 1299, status: 'Delivered',  date: '27 Apr 2026',
-    address: '7, Banjara Hills', city: 'Hyderabad', state: 'Telangana',   pincode: '500034',
-    deliveryMethod: 'Standard', paymentMethod: 'Debit Card', estimatedDate: '2 May 2026',
-  },
-  {
-    id: 'AHV-2024-039', customer: 'Nisha Verma',    email: 'nisha@example.com',
-    items: [{ name: 'Kundan Choker Set',     size: '14"',       quantity: 1, price: 6299, bg: 'bg-[#F7EDDA]' }],
-    total: 6299, status: 'Shipped',    date: '26 Apr 2026',
-    address: '9, Hazratganj', city: 'Lucknow',   state: 'Uttar Pradesh',pincode: '226001',
-    deliveryMethod: 'Express', paymentMethod: 'UPI', estimatedDate: '1 May 2026',
-  },
-]
-
 // ─── Status config ─────────────────────────────────────────────────────────────
 
 const STATUS_SEQUENCE: OrderStatus[] = ['Processing', 'Shipped', 'Delivered']
@@ -266,7 +188,7 @@ export default function AdminOrdersPage() {
   const [tab,     setTab]     = useState<OrderStatus | 'All'>('All')
   const [query,   setQuery]   = useState('')
   const [page,    setPage]    = useState(1)
-  const [orders,  setOrders]  = useState<Order[]>(ALL_ORDERS)
+  const [orders,  setOrders]  = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [fromDb,  setFromDb]  = useState(false)
   const [viewing, setViewing] = useState<Order | null>(null)
@@ -278,15 +200,15 @@ export default function AdminOrdersPage() {
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         setOrders(data.map(mapDbOrder))
         setFromDb(true)
       } else {
-        setOrders(ALL_ORDERS)
+        setOrders([])
         setFromDb(false)
       }
     } catch {
-      setOrders(ALL_ORDERS)
+      setOrders([])
       setFromDb(false)
     }
     setLoading(false)
@@ -348,10 +270,9 @@ export default function AdminOrdersPage() {
           <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light flex items-center gap-2">
             {filtered.length} order{filtered.length !== 1 ? 's' : ''}
             {tab !== 'All' ? ` · ${tab}` : ''}
-            {fromDb
-              ? <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">LIVE DB</span>
-              : <span className="px-1.5 py-0.5 bg-[#1A1A1A]/6 text-[#1A1A1A]/35 border border-[#1A1A1A]/8 text-[0.55rem] font-semibold tracking-wide rounded">DEMO</span>
-            }
+            {fromDb && (
+              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">SUPABASE</span>
+            )}
           </p>
         </div>
         {/* Quick stats + refresh */}

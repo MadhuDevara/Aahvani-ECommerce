@@ -1,47 +1,50 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import ProductDetailClient from '@/components/ProductDetailClient'
-import { PRODUCTS, type Product } from '@/lib/products'
+import { mapSupabaseRowToProduct, productRouteId, type Product } from '@/lib/products'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-// Pre-generate static shells for known product IDs (extended at runtime via Supabase)
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ id: String(p.id) }))
-}
-
 async function getProduct(id: string): Promise<Product | null> {
-  // Try Supabase first
+  const decoded = decodeURIComponent(id)
+
   try {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('id', id)
+      .eq('id', decoded)
       .single()
 
     if (!error && data) {
-      return {
-        id:            Number(data.id) || 0,
-        name:          String(data.name ?? ''),
-        category:      String(data.category ?? ''),
-        originalPrice: Number(data.price ?? 0),
-        salePrice:     Number(data.discount_price ?? data.price ?? 0),
-        material:      String(data.material ?? ''),
-        rating:        Number(data.rating ?? 4.0),
-        reviews:       Number(data.reviews ?? 0),
-        popularity:    Number(data.popularity ?? 50),
-        bg:            String(data.bg ?? 'bg-[#F5EBD8]'),
-        label:         data.badge as string | undefined,
-        sku:           String(data.sku ?? ''),
-      }
+      return mapSupabaseRowToProduct(data as Record<string, unknown>)
     }
   } catch {
-    // Supabase unavailable
+    /* not found */
   }
 
-  // Fall back to local data
-  return PRODUCTS.find((p) => p.id === Number(id)) ?? null
+  return null
+}
+
+async function fetchRelatedProducts(
+  category: string,
+  excludeDbId: string,
+  take: number
+): Promise<Product[]> {
+  if (!category.trim() || !excludeDbId.trim()) return []
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category', category)
+      .neq('id', excludeDbId)
+      .limit(take)
+
+    if (error || !data?.length) return []
+    return data.map((row) => mapSupabaseRowToProduct(row as Record<string, unknown>))
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({
@@ -70,5 +73,8 @@ export default async function ProductPage({
 
   if (!product) notFound()
 
-  return <ProductDetailClient productId={id} />
+  const dbId = product.routeId ?? productRouteId(product)
+  const related = await fetchRelatedProducts(product.category, dbId, 8)
+
+  return <ProductDetailClient product={product} relatedProducts={related.slice(0, 4)} />
 }

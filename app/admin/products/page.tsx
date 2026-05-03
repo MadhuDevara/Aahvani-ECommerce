@@ -13,7 +13,6 @@ import {
   Gem,
   RefreshCw,
 } from 'lucide-react'
-import { PRODUCTS } from '@/lib/products'
 import { supabase } from '@/lib/supabase'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
@@ -36,14 +35,6 @@ interface AdminProduct {
   bg:          string
 }
 
-// Fallback local data
-const LOCAL_PRODUCTS: AdminProduct[] = PRODUCTS.map((p) => ({
-  ...p,
-  stock:    Math.floor(Math.random() * 60) + 5,
-  featured: p.popularity > 80,
-  active:   true,
-}))
-
 // Map a Supabase row → AdminProduct
 function mapRow(row: Record<string, unknown>): AdminProduct {
   return {
@@ -58,16 +49,13 @@ function mapRow(row: Record<string, unknown>): AdminProduct {
     active:        true,
     label:         (row.badge as string | undefined),
     sku:           (row.sku as string) ?? '',
-    bg:            'bg-[#F5EBD8]',
+    bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
   }
 }
 
-const ALL_CATEGORIES = ['All', ...Array.from(new Set(PRODUCTS.map((p) => p.category)))]
-
 export default function AdminProductsPage() {
-  const [products,  setProducts]  = useState<AdminProduct[]>(LOCAL_PRODUCTS)
+  const [products,  setProducts]  = useState<AdminProduct[]>([])
   const [loading,   setLoading]   = useState(true)
-  const [fromDb,    setFromDb]    = useState(false)
   const [query,     setQuery]     = useState('')
   const [category,  setCategory]  = useState('All')
   const [page,      setPage]      = useState(1)
@@ -79,25 +67,20 @@ export default function AdminProductsPage() {
         .from('products')
         .select('*')
         .order('created_at', { ascending: false })
-      if (!error && data && data.length > 0) {
+      if (!error && data?.length) {
         setProducts(data.map(mapRow))
-        setFromDb(true)
       } else {
-        setProducts(LOCAL_PRODUCTS)
-        setFromDb(false)
+        setProducts([])
       }
     } catch {
-      setProducts(LOCAL_PRODUCTS)
-      setFromDb(false)
+      setProducts([])
     }
     setLoading(false)
   }, [])
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
 
-  const categories = fromDb
-    ? ['All', ...Array.from(new Set(products.map((p) => p.category)))]
-    : ALL_CATEGORIES
+  const categories = ['All', ...Array.from(new Set(products.map((p) => p.category))).sort((a, b) => a.localeCompare(b))]
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -112,13 +95,9 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string | number) => {
     if (!window.confirm('Delete this product?')) return
-    if (fromDb) {
-      const { error } = await supabase.from('products').delete().eq('id', id)
-      if (error) { alert('Failed to delete: ' + error.message); return }
-      fetchProducts()
-    } else {
-      setProducts((prev) => prev.filter((p) => p.id !== id))
-    }
+    const { error } = await supabase.from('products').delete().eq('id', id)
+    if (error) { alert('Failed to delete: ' + error.message); return }
+    fetchProducts()
     if (paged.length === 1 && page > 1) setPage((p) => p - 1)
   }
 
@@ -142,10 +121,7 @@ export default function AdminProductsPage() {
           <h1 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">Manage Products</h1>
           <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light flex items-center gap-2">
             {filtered.length} product{filtered.length !== 1 ? 's' : ''} total
-            {fromDb
-              ? <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">LIVE DB</span>
-              : <span className="px-1.5 py-0.5 bg-[#1A1A1A]/6 text-[#1A1A1A]/35 border border-[#1A1A1A]/8 text-[0.55rem] font-semibold tracking-wide rounded">LOCAL</span>
-            }
+            <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[0.55rem] font-semibold tracking-wide rounded">SUPABASE</span>
           </p>
         </div>
         <div className="flex items-center gap-2">

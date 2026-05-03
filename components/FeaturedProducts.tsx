@@ -3,55 +3,42 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, ShoppingBag, Gem } from 'lucide-react'
-import { PRODUCTS, inr, type Product } from '@/lib/products'
+import { inr, mapSupabaseRowToProduct, productRouteId, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
 import { supabase } from '@/lib/supabase'
 
-// Local fallback: 6 most popular products
-const LOCAL_FEATURED = [...PRODUCTS].sort((a, b) => b.popularity - a.popularity).slice(0, 6)
-
-function mapDbProduct(row: Record<string, unknown>): Product {
-  return {
-    id:            Number(row.id) || 0,
-    name:          String(row.name ?? ''),
-    category:      String(row.category ?? ''),
-    originalPrice: Number(row.price ?? 0),
-    salePrice:     Number(row.discount_price ?? row.price ?? 0),
-    material:      String(row.material ?? ''),
-    rating:        Number(row.rating ?? 4.0),
-    reviews:       Number(row.reviews ?? 0),
-    popularity:    Number(row.popularity ?? 50),
-    bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
-    label:         row.badge as string | undefined,
-    sku:           String(row.sku || row.id || ''),
-  }
-}
-
 export default function FeaturedProducts() {
-  const [featured,  setFeatured]  = useState<Product[]>(LOCAL_FEATURED)
-  const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
+  const [featured, setFeatured]   = useState<Product[]>([])
+  const [ready, setReady]         = useState(false)
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const addToCart       = useCartStore((s) => s.addToCart)
   const wishlistItems   = useWishlistStore((s) => s.items)
   const toggleWishlist  = useWishlistStore((s) => s.toggleWishlist)
   const isWishlisted    = (key: string) => wishlistItems.some((i) => i.id === key)
 
   useEffect(() => {
+    let cancelled = false
     supabase
       .from('products')
       .select('*')
       .eq('is_featured', true)
       .limit(6)
       .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          setFeatured(data.map(mapDbProduct))
+        if (cancelled) return
+        if (!error && data?.length) {
+          setFeatured(data.map(mapSupabaseRowToProduct))
+        } else {
+          setFeatured([])
         }
-      }, () => { /* stay on local fallback */ })
+        setReady(true)
+      })
+    return () => { cancelled = true }
   }, [])
 
   const handleAddToCart = (product: Product) => {
     addToCart({
-      id:            String(product.id),
+      id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
       originalPrice: product.originalPrice,
@@ -60,17 +47,29 @@ export default function FeaturedProducts() {
       category:      product.category,
       bg:            product.bg,
     })
-    setAddedIds((prev) => new Set(prev).add(product.id))
+    const rid = productRouteId(product)
+    setAddedIds((prev) => new Set(prev).add(rid))
     setTimeout(
-      () => setAddedIds((prev) => { const n = new Set(prev); n.delete(product.id); return n }),
+      () => setAddedIds((prev) => { const n = new Set(prev); n.delete(rid); return n }),
       1500
     )
   }
 
+  if (!ready) {
+    return (
+      <section className="py-24 bg-[#FDF6EC] px-4" aria-busy="true">
+        <div className="max-w-6xl mx-auto flex justify-center py-16">
+          <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+        </div>
+      </section>
+    )
+  }
+
+  if (featured.length === 0) return null
+
   return (
     <section className="py-24 bg-[#FDF6EC] px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-16">
           <p className="text-[0.6rem] tracking-[0.4em] uppercase text-[#C6973F] mb-4">Curated for You</p>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.8rem] font-semibold text-[#1A1A1A] mb-5">
@@ -85,19 +84,19 @@ export default function FeaturedProducts() {
           </div>
         </div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
-          {featured.map((product) => {
-            const productWishlisted = isWishlisted(product.sku || String(product.id))
+          {featured.map((product, index) => {
+            const rid = productRouteId(product)
+            const rowKey = rid || `featured-${index}`
+            const productWishlisted = isWishlisted(rid)
             const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
 
             return (
               <div
-                key={product.id}
+                key={rowKey}
                 className="group bg-white hover:shadow-[0_12px_48px_rgba(198,151,63,0.12)] transition-shadow duration-300"
               >
-                {/* Image — links to detail page */}
-                <Link href={`/shop/${product.id}`} className="block">
+                <Link href={`/shop/${encodeURIComponent(rid)}`} className="block">
                   <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
                     {product.label && (
                       <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
@@ -105,7 +104,7 @@ export default function FeaturedProducts() {
                       </span>
                     )}
                     <button
-                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: product.sku || String(product.id), name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
+                      onClick={(e) => { e.preventDefault(); toggleWishlist({ id: rid, name: product.name, price: product.salePrice, originalPrice: product.originalPrice, category: product.category, bg: product.bg }) }}
                       className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
                       aria-label={productWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -122,9 +121,8 @@ export default function FeaturedProducts() {
                   </div>
                 </Link>
 
-                {/* Info */}
                 <div className="p-5">
-                  <Link href={`/shop/${product.id}`}>
+                  <Link href={`/shop/${encodeURIComponent(rid)}`}>
                     <h3 className="font-serif text-[0.95rem] font-medium text-[#1A1A1A] mb-3 group-hover:text-[#C6973F] transition-colors duration-200 tracking-wide">
                       {product.name}
                     </h3>
@@ -137,13 +135,13 @@ export default function FeaturedProducts() {
                   <button
                     onClick={() => handleAddToCart(product)}
                     className={`w-full flex items-center justify-center gap-2 py-2.5 border text-[0.67rem] tracking-[0.18em] uppercase font-medium transition-all duration-200 ${
-                      addedIds.has(product.id)
+                      addedIds.has(rid)
                         ? 'border-emerald-500 bg-emerald-500 text-white'
                         : 'border-[#C6973F] text-[#C6973F] hover:bg-[#C6973F] hover:text-white'
                     }`}
                   >
                     <ShoppingBag size={12} strokeWidth={1.5} />
-                    {addedIds.has(product.id) ? 'Added!' : 'Add to Cart'}
+                    {addedIds.has(rid) ? 'Added!' : 'Add to Cart'}
                   </button>
                 </div>
               </div>
@@ -151,7 +149,6 @@ export default function FeaturedProducts() {
           })}
         </div>
 
-        {/* View all CTA */}
         <div className="text-center mt-14">
           <Link
             href="/shop"

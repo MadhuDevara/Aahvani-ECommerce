@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Search, Package, Truck, CheckCircle, Clock, MapPin, AlertCircle, Check } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 function GoldDivider() {
   return (
@@ -13,47 +14,16 @@ function GoldDivider() {
   )
 }
 
-const DUMMY_ORDERS: Record<string, {
-  id: string; product: string; status: string; customer: string;
-  eta: string; trackingNo: string;
-  steps: { label: string; time: string | null; done: boolean; current: boolean }[]
-}> = {
-  'AHV-2024-001': {
-    id: 'AHV-2024-001', product: 'Temple Necklace Set', status: 'Delivered',
-    customer: 'Priya Sharma', eta: '3 May 2026', trackingNo: 'AHV1234567890IN',
-    steps: [
-      { label: 'Order Placed',      time: '28 Apr, 10:32 AM', done: true,  current: false },
-      { label: 'Payment Confirmed', time: '28 Apr, 10:35 AM', done: true,  current: false },
-      { label: 'Processing',        time: '28 Apr, 02:00 PM', done: true,  current: false },
-      { label: 'Shipped',           time: '29 Apr, 09:15 AM', done: true,  current: false },
-      { label: 'Out for Delivery',  time: '3 May, 08:00 AM',  done: true,  current: false },
-      { label: 'Delivered',         time: '3 May, 01:42 PM',  done: true,  current: false },
-    ],
-  },
-  'AHV-2024-002': {
-    id: 'AHV-2024-002', product: 'Kundan Polki Ring', status: 'Shipped',
-    customer: 'Riya Kapoor', eta: '4 May 2026', trackingNo: 'AHV9876543210IN',
-    steps: [
-      { label: 'Order Placed',      time: '1 May, 03:15 PM', done: true,  current: false },
-      { label: 'Payment Confirmed', time: '1 May, 03:17 PM', done: true,  current: false },
-      { label: 'Processing',        time: '1 May, 06:00 PM', done: true,  current: false },
-      { label: 'Shipped',           time: '2 May, 10:30 AM', done: true,  current: true  },
-      { label: 'Out for Delivery',  time: null,              done: false, current: false },
-      { label: 'Delivered',         time: null,              done: false, current: false },
-    ],
-  },
-  'AHV-2024-003': {
-    id: 'AHV-2024-003', product: 'Meenakari Jhumka', status: 'Processing',
-    customer: 'Sneha Reddy', eta: '8 May 2026', trackingNo: '',
-    steps: [
-      { label: 'Order Placed',      time: '2 May, 11:00 AM', done: true,  current: false },
-      { label: 'Payment Confirmed', time: '2 May, 11:02 AM', done: true,  current: false },
-      { label: 'Processing',        time: null,              done: false, current: true  },
-      { label: 'Shipped',           time: null,              done: false, current: false },
-      { label: 'Out for Delivery',  time: null,              done: false, current: false },
-      { label: 'Delivered',         time: null,              done: false, current: false },
-    ],
-  },
+type Step = { label: string; time: string | null; done: boolean; current: boolean }
+
+interface TrackResult {
+  id: string
+  product: string
+  status: string
+  customer: string
+  eta: string
+  trackingNo: string
+  steps: Step[]
 }
 
 const STATUS_ICON: Record<string, typeof Package> = {
@@ -66,29 +36,100 @@ const STATUS_COLOR: Record<string, string> = {
   Delivered:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
   Shipped:    'bg-blue-50 text-blue-700 border border-blue-200',
   Processing: 'bg-[#C6973F]/10 text-[#C6973F] border border-[#C6973F]/25',
+  Cancelled:  'bg-red-50 text-red-600 border border-red-200',
+}
+
+const LABELS = ['Order Placed', 'Payment Confirmed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'] as const
+
+function buildSteps(status: string): Step[] {
+  const norm = (status || 'Processing').toLowerCase()
+
+  if (norm === 'delivered') {
+    return LABELS.map((label) => ({ label, time: null, done: true, current: false }))
+  }
+  if (norm === 'cancelled') {
+    return LABELS.map((label, i) => ({ label, time: null, done: false, current: i === 0 }))
+  }
+
+  let progress = 2
+  if (norm === 'shipped') progress = 3
+  else if (norm === 'processing') progress = 2
+
+  return LABELS.map((label, i) => ({
+    label,
+    time: null,
+    done: i < progress,
+    current: i === progress,
+  }))
+}
+
+function mapRowToTrackResult(row: Record<string, unknown>): TrackResult {
+  const items = Array.isArray(row.items) ? (row.items as { name?: string }[]) : []
+  const productSummary =
+    items.length === 0 ? 'Order items'
+    : items.length === 1 ? String(items[0]?.name ?? 'Order items')
+    : `${items.length} items`
+
+  const status = String(row.status ?? 'Processing')
+  const orderNum = String(row.order_number ?? row.id ?? '')
+
+  return {
+    id:            orderNum,
+    product:       productSummary,
+    status,
+    customer:      String(row.customer_name ?? ''),
+    eta:           String(row.estimated_date ?? ''),
+    trackingNo:    String(row.tracking_no ?? ''),
+    steps:         buildSteps(status),
+  }
 }
 
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState('')
   const [email,   setEmail]   = useState('')
-  const [result,  setResult]  = useState<typeof DUMMY_ORDERS[string] | null>(null)
+  const [result,  setResult]  = useState<TrackResult | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [copied,   setCopied]   = useState(false)
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!orderId.trim() || !email.trim()) return
     setLoading(true)
     setNotFound(false)
     setResult(null)
-    setTimeout(() => {
+
+    const oid   = orderId.trim()
+    const em    = email.trim().toLowerCase()
+
+    try {
+      let row: Record<string, unknown> | null = null
+
+      const byNumber = await supabase.from('orders').select('*').eq('order_number', oid).maybeSingle()
+      if (!byNumber.error && byNumber.data) row = byNumber.data as Record<string, unknown>
+
+      if (!row) {
+        const byId = await supabase.from('orders').select('*').eq('id', oid).maybeSingle()
+        if (!byId.error && byId.data) row = byId.data as Record<string, unknown>
+      }
+
+      if (!row) {
+        setNotFound(true)
+        return
+      }
+
+      const rowEmail = String(row.user_email ?? row.customer_email ?? '').toLowerCase()
+      if (rowEmail !== em) {
+        setNotFound(true)
+        return
+      }
+
+      setResult(mapRowToTrackResult(row))
+    } catch {
+      setNotFound(true)
+    } finally {
       setLoading(false)
-      const key = orderId.trim().toUpperCase()
-      const match = DUMMY_ORDERS[key]
-      if (match) { setResult(match) }
-      else        { setNotFound(true) }
-    }, 1000)
+    }
   }
 
   const copyTracking = (num: string) => {
@@ -100,7 +141,6 @@ export default function TrackOrderPage() {
   return (
     <div className="min-h-screen bg-[#FDF6EC]">
 
-      {/* Hero */}
       <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
         <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Where is my order?</p>
         <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">Track Your Order</h1>
@@ -112,7 +152,6 @@ export default function TrackOrderPage() {
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14 space-y-10">
 
-        {/* Search form */}
         <form onSubmit={handleTrack} className="bg-white border border-[#1A1A1A]/8 p-6 md:p-8 space-y-4">
           <div>
             <label className="text-[0.63rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
@@ -124,7 +163,7 @@ export default function TrackOrderPage() {
                 type="text"
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
-                placeholder="e.g. AHV-2024-001"
+                placeholder="Order number from confirmation email"
                 className="w-full pl-10 pr-4 py-3 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
               />
             </div>
@@ -153,11 +192,10 @@ export default function TrackOrderPage() {
             )}
           </button>
           <p className="text-[0.62rem] text-[#1A1A1A]/30 text-center font-light">
-            Try: <span className="font-mono text-[#C6973F]">AHV-2024-001</span> or <span className="font-mono text-[#C6973F]">AHV-2024-002</span> with any email
+            Use the same email you entered at checkout. Your order number is in your confirmation email.
           </p>
         </form>
 
-        {/* Not found */}
         {notFound && (
           <div className="flex gap-3 p-5 bg-red-50 border border-red-100">
             <AlertCircle size={16} strokeWidth={1.5} className="text-red-500 flex-shrink-0 mt-0.5" />
@@ -170,11 +208,9 @@ export default function TrackOrderPage() {
           </div>
         )}
 
-        {/* Result */}
         {result && (
           <div className="space-y-6 animate-in">
 
-            {/* Order summary bar */}
             <div className="bg-white border border-[#1A1A1A]/8 p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
@@ -183,16 +219,18 @@ export default function TrackOrderPage() {
                   <p className="text-xs text-[#1A1A1A]/50 font-light mt-0.5">{result.product}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[0.62rem] font-semibold tracking-wide rounded-full ${STATUS_COLOR[result.status]}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[0.62rem] font-semibold tracking-wide rounded-full ${STATUS_COLOR[result.status] ?? STATUS_COLOR.Processing}`}>
                     {result.status in STATUS_ICON &&
                       (() => { const Ic = STATUS_ICON[result.status]; return <Ic size={11} strokeWidth={2} /> })()
                     }
                     {result.status}
                   </span>
-                  <div className="flex items-center justify-end gap-1.5 mt-2 text-[0.62rem] text-[#1A1A1A]/35">
-                    <MapPin size={10} strokeWidth={1.5} />
-                    Est. {result.eta}
-                  </div>
+                  {result.eta && (
+                    <div className="flex items-center justify-end gap-1.5 mt-2 text-[0.62rem] text-[#1A1A1A]/35">
+                      <MapPin size={10} strokeWidth={1.5} />
+                      Est. {result.eta}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -215,7 +253,6 @@ export default function TrackOrderPage() {
               )}
             </div>
 
-            {/* Timeline */}
             <div className="bg-white border border-[#1A1A1A]/8 p-6">
               <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-6">Order Timeline</p>
               <div className="space-y-0">

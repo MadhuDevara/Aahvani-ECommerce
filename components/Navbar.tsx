@@ -8,7 +8,8 @@ import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
 import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import { PRODUCTS, inr } from '@/lib/products'
+import { inr, productRouteId, type Product } from '@/lib/products'
+import { supabaseSearchProducts } from '@/lib/product-search'
 
 const NAV_LINKS = [
   { href: '/',            label: 'Home'        },
@@ -39,14 +40,24 @@ export default function Navbar() {
   const [searchOpen,    setSearchOpen]    = useState(false)
   const [searchQuery,   setSearchQuery]   = useState('')
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const [searchNavResults, setSearchNavResults] = useState<Product[]>([])
+  const [searchNavLoading, setSearchNavLoading] = useState(false)
 
-  const searchResults = searchQuery.trim().length > 0
-    ? PRODUCTS.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.material.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 6)
-    : []
+  useEffect(() => {
+    const q = searchQuery.trim()
+    if (!q) {
+      setSearchNavResults([])
+      setSearchNavLoading(false)
+      return
+    }
+    setSearchNavLoading(true)
+    const t = setTimeout(() => {
+      supabaseSearchProducts(q, 6)
+        .then(setSearchNavResults)
+        .finally(() => setSearchNavLoading(false))
+    }, 280)
+    return () => clearTimeout(t)
+  }, [searchQuery])
 
   const openSearch = useCallback(() => {
     setSearchOpen(true)
@@ -403,13 +414,17 @@ export default function Navbar() {
             {/* Live results */}
             {searchQuery.trim() && (
               <div className="max-h-[60vh] overflow-y-auto">
-                {searchResults.length > 0 ? (
+                {searchNavLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-7 h-7 border-2 border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+                  </div>
+                ) : searchNavResults.length > 0 ? (
                   <>
                     <div className="divide-y divide-[#1A1A1A]/5">
-                      {searchResults.map((p) => (
+                      {searchNavResults.map((p) => (
                         <Link
-                          key={p.id}
-                          href={`/shop/${p.id}`}
+                          key={productRouteId(p)}
+                          href={`/shop/${encodeURIComponent(productRouteId(p))}`}
                           onClick={closeSearch}
                           className="flex items-center gap-4 px-5 py-3.5 hover:bg-[#FDF6EC] transition-colors group"
                         >
@@ -449,7 +464,7 @@ export default function Navbar() {
                 ) : (
                   <div className="px-5 py-10 text-center">
                     <p className="text-sm text-[#1A1A1A]/35 font-light">
-                      No results for &ldquo;<span className="text-[#1A1A1A]/60 font-medium">{searchQuery}</span>&rdquo;
+                      No matches in catalogue for &ldquo;<span className="text-[#1A1A1A]/60 font-medium">{searchQuery}</span>&rdquo;
                     </p>
                     <Link
                       href={`/search?q=${encodeURIComponent(searchQuery.trim())}`}

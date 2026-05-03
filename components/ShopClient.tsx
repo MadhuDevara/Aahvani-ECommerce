@@ -16,7 +16,7 @@ import {
   Gem,
   Star,
 } from 'lucide-react'
-import { PRODUCTS, inr, type Product } from '@/lib/products'
+import { inr, productRouteId, type Product } from '@/lib/products'
 import { useCartStore } from '@/lib/cartStore'
 import { useWishlistStore } from '@/lib/wishlistStore'
 
@@ -28,8 +28,6 @@ interface FilterState {
   materials: string[]
   rating: string
 }
-
-const CATEGORIES = ['All', 'Rings', 'Earrings', 'Necklaces', 'Bracelets', 'Sets']
 
 const PRICE_RANGES = [
   { label: 'Under ₹1,000',     min: 0,    max: 999   },
@@ -96,7 +94,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
 
   const handleAddToCart = () => {
     addToCart({
-      id:            String(product.id),
+      id:            productRouteId(product),
       name:          product.name,
       price:         product.salePrice,
       originalPrice: product.originalPrice,
@@ -110,9 +108,10 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
   }
 
   if (listView) {
+    const listHref = `/shop/${encodeURIComponent(productRouteId(product))}`
     return (
       <div className="group flex bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.10)] transition-shadow duration-300">
-        <div className={`relative w-36 sm:w-44 flex-shrink-0 ${product.bg} overflow-hidden`}>
+        <Link href={listHref} className={`relative w-36 sm:w-44 flex-shrink-0 ${product.bg} overflow-hidden`}>
           {product.label && (
             <span className="absolute top-2 left-2 z-10 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
               {product.label}
@@ -121,13 +120,15 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.14]" aria-hidden="true">
             <Gem size={44} strokeWidth={0.8} className="text-[#C6973F]" />
           </div>
-        </div>
+        </Link>
         <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="font-serif text-base font-medium text-[#1A1A1A] group-hover:text-[#C6973F] transition-colors duration-200 leading-snug">
-                {product.name}
-              </h3>
+              <Link href={listHref} className="min-w-0">
+                <h3 className="font-serif text-base font-medium text-[#1A1A1A] group-hover:text-[#C6973F] transition-colors duration-200 leading-snug">
+                  {product.name}
+                </h3>
+              </Link>
               <button
                 onClick={() => onToggleWishlist(product)}
                 className="flex-shrink-0 w-7 h-7 flex items-center justify-center hover:text-[#C6973F] transition-colors duration-200"
@@ -164,16 +165,18 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
     )
   }
 
+  const shopHref = `/shop/${encodeURIComponent(productRouteId(product))}`
+
   return (
     <div className="group bg-white hover:shadow-[0_12px_48px_rgba(198,151,63,0.12)] transition-shadow duration-300">
-      <div className={`relative aspect-square ${product.bg} overflow-hidden`}>
+      <Link href={shopHref} className={`relative block aspect-square ${product.bg} overflow-hidden`}>
         {product.label && (
           <span className="absolute top-3 left-3 z-10 text-[0.58rem] tracking-[0.14em] uppercase px-2.5 py-1 bg-[#C6973F] text-white font-medium">
             {product.label}
           </span>
         )}
         <button
-          onClick={() => onToggleWishlist(product)}
+          onClick={(e) => { e.preventDefault(); onToggleWishlist(product) }}
           className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/85 hover:bg-white transition-colors duration-200"
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
@@ -187,9 +190,9 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, listView }: Prod
           <Gem size={64} strokeWidth={0.8} className="text-[#C6973F]" />
         </div>
         <div className="absolute inset-0 bg-[#C6973F]/0 group-hover:bg-[#C6973F]/4 transition-colors duration-300" />
-      </div>
+      </Link>
       <div className="p-4">
-        <Link href={`/shop/${product.id}`}>
+        <Link href={shopHref}>
           <h3 className="font-serif text-[0.92rem] font-medium text-[#1A1A1A] mb-1 group-hover:text-[#C6973F] transition-colors duration-200 tracking-wide leading-snug">
             {product.name}
           </h3>
@@ -244,6 +247,11 @@ function FilterPanel({
     return counts
   }, [products])
 
+  const categoryList = useMemo(() => {
+    const keys = Object.keys(catCounts).filter((k) => k !== 'All').sort((a, b) => a.localeCompare(b))
+    return ['All', ...keys]
+  }, [catCounts])
+
   return (
     <div className="space-y-6">
       {/* Category */}
@@ -252,7 +260,7 @@ function FilterPanel({
           Category
         </h3>
         <ul className="space-y-2">
-          {CATEGORIES.map((cat) => (
+          {categoryList.map((cat) => (
             <li key={cat}>
               <button
                 onClick={() => onCategoryChange(cat)}
@@ -418,17 +426,20 @@ function FilterPanel({
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function ShopClient({ initialProducts }: { initialProducts?: Product[] } = {}) {
-  const productList = initialProducts && initialProducts.length > 0 ? initialProducts : PRODUCTS
+  const productList = initialProducts ?? []
   const searchParams = useSearchParams()
 
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const cat = searchParams.get('category') ?? 'All'
-    return {
-      category:  CATEGORIES.includes(cat) ? cat : 'All',
-      prices:    [],
-      materials: [],
-      rating:    '',
-    }
+  const validCategories = useMemo(() => {
+    const s = new Set(productList.map((p) => p.category).filter(Boolean))
+    s.add('All')
+    return s
+  }, [productList])
+
+  const [filters, setFilters] = useState<FilterState>({
+    category:  'All',
+    prices:    [],
+    materials: [],
+    rating:    '',
   })
   const [sortBy, setSortBy]               = useState('newest')
   const [view, setView]                   = useState<'grid' | 'list'>('grid')
@@ -438,13 +449,13 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
   const toggleWishlistStore = useWishlistStore((s) => s.toggleWishlist)
   const isWishlistedStore   = (key: string) => wishlistItems.some((i) => i.id === key)
 
-  // Sync category filter when URL param changes (e.g. navigating from homepage cards)
+  // Sync category filter when URL param or catalog changes
   useEffect(() => {
     const cat = searchParams.get('category') ?? 'All'
-    const resolved = CATEGORIES.includes(cat) ? cat : 'All'
+    const resolved = validCategories.has(cat) ? cat : 'All'
     setFilters((prev) => ({ ...prev, category: resolved }))
     setCurrentPage(1)
-  }, [searchParams])
+  }, [searchParams, validCategories])
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
@@ -480,7 +491,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
       case 'price-asc':  return [...result].sort((a, b) => a.salePrice - b.salePrice)
       case 'price-desc': return [...result].sort((a, b) => b.salePrice - a.salePrice)
       case 'popular':    return [...result].sort((a, b) => b.popularity - a.popularity)
-      default:           return [...result].sort((a, b) => b.id - a.id)
+      default:
+        // Preserve server order (e.g. Supabase `created_at` desc); seed catalog keeps array order
+        return [...result]
     }
   }, [filters, sortBy, productList])
 
@@ -491,7 +504,7 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const toggleWishlist = (p: Product) => {
-    const key = p.sku || String(p.id)
+    const key = productRouteId(p)
     toggleWishlistStore({ id: key, name: p.name, price: p.salePrice, originalPrice: p.originalPrice, category: p.category, bg: p.bg })
   }
 
@@ -524,8 +537,8 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  const startItem = (safePage - 1) * PAGE_SIZE + 1
-  const endItem   = Math.min(safePage * PAGE_SIZE, totalCount)
+  const startItem = totalCount === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
+  const endItem   = totalCount === 0 ? 0 : Math.min(safePage * PAGE_SIZE, totalCount)
 
   return (
     <>
@@ -706,9 +719,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
                 {filteredProducts.map((p) => (
                   <ProductCard
-                    key={p.sku || p.id}
+                    key={productRouteId(p)}
                     product={p}
-                    isWishlisted={isWishlistedStore(p.sku || String(p.id))}
+                    isWishlisted={isWishlistedStore(productRouteId(p))}
                     onToggleWishlist={toggleWishlist}
                   />
                 ))}
@@ -717,9 +730,9 @@ export default function ShopClient({ initialProducts }: { initialProducts?: Prod
               <div className="flex flex-col gap-3">
                 {filteredProducts.map((p) => (
                   <ProductCard
-                    key={p.sku || p.id}
+                    key={productRouteId(p)}
                     product={p}
-                    isWishlisted={isWishlistedStore(p.sku || String(p.id))}
+                    isWishlisted={isWishlistedStore(productRouteId(p))}
                     onToggleWishlist={toggleWishlist}
                     listView
                   />

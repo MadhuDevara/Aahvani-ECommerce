@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import ShopClient from '@/components/ShopClient'
-import { PRODUCTS, type Product } from '@/lib/products'
+import { mapSupabaseRowToProduct, type Product } from '@/lib/products'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
@@ -12,25 +12,8 @@ export const metadata: Metadata = {
     'Browse our complete collection of handcrafted jewellery — rings, earrings, necklaces, bracelets and more. Filter by category, price and material.',
 }
 
-function mapDbProduct(row: Record<string, unknown>): Product {
-  return {
-    id:            Number(row.id) || 0,
-    name:          String(row.name ?? ''),
-    category:      String(row.category ?? ''),
-    originalPrice: Number(row.price ?? 0),
-    salePrice:     Number(row.discount_price ?? row.price ?? 0),
-    material:      String(row.material ?? ''),
-    rating:        Number(row.rating ?? 4.0),
-    reviews:       Number(row.reviews ?? 0),
-    popularity:    Number(row.popularity ?? 50),
-    bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
-    label:         row.badge as string | undefined,
-    sku:           String(row.sku || row.id || ''),
-  }
-}
-
 export default async function ShopPage() {
-  let products: Product[] = PRODUCTS
+  let products: Product[] = []
 
   try {
     const { data, error } = await supabase
@@ -38,11 +21,11 @@ export default async function ShopPage() {
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (!error && data && data.length > 0) {
-      products = data.map(mapDbProduct)
+    if (!error && data?.length) {
+      products = data.map(mapSupabaseRowToProduct)
     }
   } catch {
-    // Supabase unavailable — use local fallback silently
+    /* empty list — no static fallback */
   }
 
   return (
