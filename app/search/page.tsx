@@ -12,6 +12,8 @@ import { useWishlistStore, wishlistItemFromProduct } from '@/lib/wishlistStore'
 import { loginPath } from '@/lib/login-path'
 import { hasAuthSession } from '@/lib/has-auth-session'
 import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
+import SearchResultSkeleton from '@/components/skeletons/SearchResultSkeleton'
+import RippleButton from '@/components/ui/RippleButton'
 
 // ─── Product card (self-contained, same style as ShopClient) ──────────────────
 
@@ -72,7 +74,7 @@ function ResultCard({ product }: { product: Product }) {
           <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
           <span className="text-[0.6rem] text-emerald-600 font-medium ml-auto">{discount}% off</span>
         </div>
-        <button
+        <RippleButton
           onClick={handleAdd}
           className={`w-full flex items-center justify-center gap-2 py-2.5 border text-[0.67rem] tracking-[0.18em] uppercase font-medium transition-all duration-200 ${
             added ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-[#C6973F] text-[#C6973F] hover:bg-[#C6973F] hover:text-white'
@@ -80,7 +82,7 @@ function ResultCard({ product }: { product: Product }) {
         >
           <ShoppingBag size={12} strokeWidth={1.5} />
           {added ? 'Added!' : 'Add to Cart'}
-        </button>
+        </RippleButton>
       </div>
     </div>
   )
@@ -210,8 +212,10 @@ function SearchInner() {
 
         {/* Results grid */}
         {query && loading && (
-          <div className="flex justify-center py-20">
-            <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+          <div className="space-y-4 py-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SearchResultSkeleton key={i} />
+            ))}
           </div>
         )}
 
@@ -233,8 +237,12 @@ function SearchInner() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FDF6EC] flex items-center justify-center">
-        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FDF6EC]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SearchResultSkeleton key={i} />
+          ))}
+        </div>
       </div>
     }>
       <SearchInner />

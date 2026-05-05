@@ -1,7 +1,8 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Gem, Heart } from 'lucide-react'
+import RippleButton from '@/components/ui/RippleButton'
 
 const GEM = {
   sm: { size: 48, stroke: 0.8 as const },
@@ -40,31 +41,27 @@ export default function ProductTileWithWishlist({
   gemSize = 'md',
   wishlistButtonClassName = 'h-8 w-8',
 }: ProductTileWithWishlistProps) {
-  const router = useRouter()
   const g = GEM[gemSize]
 
   return (
-    <div
-      role="presentation"
-      className={`relative cursor-pointer overflow-hidden ${aspectClassName} ${bgClassName}`}
-      onClick={() => router.push(href)}
-    >
-      <div className="pointer-events-none relative z-0 h-full w-full">
-        {label}
-        <div
-          className="absolute inset-0 flex items-center justify-center opacity-[0.14]"
-          aria-hidden="true"
-        >
-          <Gem size={g.size} strokeWidth={g.stroke} className="text-[#C6973F]" />
+    <div className={`relative overflow-hidden ${aspectClassName} ${bgClassName}`}>
+      <Link href={href} aria-label={`View ${productName}`} className="block h-full w-full cursor-pointer">
+        <div className="pointer-events-none relative z-0 h-full w-full">
+          {label}
+          <div
+            className="absolute inset-0 flex items-center justify-center opacity-[0.14]"
+            aria-hidden="true"
+          >
+            <Gem size={g.size} strokeWidth={g.stroke} className="text-[#C6973F]" />
+          </div>
+          <div
+            className="absolute inset-0 bg-[#C6973F]/0 transition-colors duration-300 group-hover:bg-[#C6973F]/4"
+            aria-hidden="true"
+          />
         </div>
-        <div
-          className="absolute inset-0 bg-[#C6973F]/0 transition-colors duration-300 group-hover:bg-[#C6973F]/4"
-          aria-hidden="true"
-        />
-      </div>
-      <button
-        type="button"
-        onClick={(e) => {
+      </Link>
+      <RippleButton
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.preventDefault()
           e.stopPropagation()
           onWishlistClick(e)
@@ -78,7 +75,7 @@ export default function ProductTileWithWishlist({
           strokeWidth={1.5}
           className={wishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
         />
-      </button>
+      </RippleButton>
     </div>
   )
 }

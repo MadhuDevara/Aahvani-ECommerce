@@ -23,6 +23,7 @@ import { loginPath } from '@/lib/login-path'
 import { hasAuthSession } from '@/lib/has-auth-session'
 import { wishlistItemFromProduct } from '@/lib/wishlistStore'
 import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
+import RippleButton from '@/components/ui/RippleButton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,9 +156,8 @@ function ProductCard({ product, listView }: ProductCardProps) {
                   {product.name}
                 </h3>
               </Link>
-            <button
-              type="button"
-              onClick={(e) => {
+            <RippleButton
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation()
                 void handleWishlist(e)
               }}
@@ -169,7 +169,7 @@ function ProductCard({ product, listView }: ProductCardProps) {
                   strokeWidth={1.5}
                   className={isWishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/40'}
                 />
-              </button>
+              </RippleButton>
             </div>
             <p className="text-[0.65rem] text-[#C6973F]/70 mb-2 tracking-wide">{product.material}</p>
             <StarRating value={product.rating} />
@@ -180,9 +180,8 @@ function ProductCard({ product, listView }: ProductCardProps) {
               <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
               <span className="text-[0.58rem] text-emerald-600 font-medium">{discount}% off</span>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
+            <RippleButton
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation()
                 void handleAddToCart()
               }}
@@ -192,7 +191,7 @@ function ProductCard({ product, listView }: ProductCardProps) {
             >
               <ShoppingBag size={11} strokeWidth={1.5} />
               {added ? 'Added!' : 'Add to Cart'}
-            </button>
+            </RippleButton>
           </div>
         </div>
       </div>
@@ -230,9 +229,8 @@ function ProductCard({ product, listView }: ProductCardProps) {
           <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
           <span className="text-[0.58rem] text-emerald-600 font-medium ml-auto">{discount}% off</span>
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
+        <RippleButton
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation()
             void handleAddToCart()
           }}
@@ -242,7 +240,7 @@ function ProductCard({ product, listView }: ProductCardProps) {
         >
           <ShoppingBag size={12} strokeWidth={1.5} />
           {added ? 'Added!' : 'Add to Cart'}
-        </button>
+        </RippleButton>
       </div>
     </div>
   )
@@ -292,7 +290,7 @@ function FilterPanel({
         <ul className="space-y-2">
           {categoryList.map((cat) => (
             <li key={cat}>
-              <button
+              <RippleButton
                 onClick={() => onCategoryChange(cat)}
                 className={`w-full flex items-center justify-between text-sm transition-colors duration-150 ${
                   filters.category === cat
@@ -308,7 +306,7 @@ function FilterPanel({
                 >
                   {catCounts[cat] ?? 0}
                 </span>
-              </button>
+              </RippleButton>
             </li>
           ))}
         </ul>

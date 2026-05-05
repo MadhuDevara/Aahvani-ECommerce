@@ -11,6 +11,8 @@ import ProductTileWithWishlist from '@/components/ProductTileWithWishlist'
 import { loginPath } from '@/lib/login-path'
 import { supabase } from '@/lib/supabase'
 import { hasAuthSession } from '@/lib/has-auth-session'
+import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton'
+import RippleButton from '@/components/ui/RippleButton'
 
 export default function FeaturedProducts() {
   const router          = useRouter()
@@ -74,8 +76,10 @@ export default function FeaturedProducts() {
   if (!ready) {
     return (
       <section className="py-24 bg-[#FDF6EC] px-4" aria-busy="true">
-        <div className="max-w-6xl mx-auto flex justify-center py-16">
-          <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-7">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
         </div>
       </section>
     )
@@ -147,7 +151,7 @@ export default function FeaturedProducts() {
                     <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
                     <span className="text-[0.6rem] text-emerald-600 font-medium ml-auto">{discount}% off</span>
                   </div>
-                  <button
+                  <RippleButton
                     onClick={() => handleAddToCart(product)}
                     className={`w-full flex items-center justify-center gap-2 py-2.5 border text-[0.67rem] tracking-[0.18em] uppercase font-medium transition-all duration-200 ${
                       addedIds.has(rid)
@@ -157,7 +161,7 @@ export default function FeaturedProducts() {
                   >
                     <ShoppingBag size={12} strokeWidth={1.5} />
                     {addedIds.has(rid) ? 'Added!' : 'Add to Cart'}
-                  </button>
+                  </RippleButton>
                 </div>
               </div>
             )

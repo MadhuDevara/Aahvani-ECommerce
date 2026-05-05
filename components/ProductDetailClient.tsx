@@ -29,6 +29,7 @@ import { useWishlistStore, wishlistItemFromProduct } from '@/lib/wishlistStore'
 import { loginPath } from '@/lib/login-path'
 import { hasAuthSession } from '@/lib/has-auth-session'
 import SizeGuideModal from '@/components/SizeGuideModal'
+import RippleButton from '@/components/ui/RippleButton'
 
 // ─── Thumbnail image variants (simulate 4 angles of the same product) ─────────
 
@@ -134,8 +135,7 @@ function RelatedCard({ product }: { product: Product }) {
           <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
           <span className="text-[0.58rem] text-emerald-600 font-medium">{discount}% off</span>
         </div>
-        <button
-          type="button"
+        <RippleButton
           onClick={async () => {
             const ok = await addToCart({
               id:            productRouteId(product),
@@ -154,7 +154,7 @@ function RelatedCard({ product }: { product: Product }) {
           className="w-full py-2 border border-[#C6973F] text-[#C6973F] text-[0.62rem] tracking-[0.15em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
         >
           Add to Cart
-        </button>
+        </RippleButton>
       </div>
     </div>
   )
@@ -402,31 +402,31 @@ export default function ProductDetailClient({
                 Quantity
               </p>
               <div className="flex items-center gap-0">
-                <button
+                <RippleButton
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
                   className="w-10 h-10 flex items-center justify-center border border-[#1A1A1A]/20 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
                   aria-label="Decrease quantity"
                 >
                   <Minus size={14} strokeWidth={1.5} />
-                </button>
+                </RippleButton>
                 <span className="w-14 h-10 flex items-center justify-center border-y border-[#1A1A1A]/20 text-sm font-medium text-[#1A1A1A] select-none">
                   {quantity}
                 </span>
-                <button
+                <RippleButton
                   onClick={() => setQuantity((q) => Math.min(10, q + 1))}
                   disabled={quantity >= 10}
                   className="w-10 h-10 flex items-center justify-center border border-[#1A1A1A]/20 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
                   aria-label="Increase quantity"
                 >
                   <Plus size={14} strokeWidth={1.5} />
-                </button>
+                </RippleButton>
               </div>
             </div>
 
             {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
+              <RippleButton
                 onClick={handleAddToCart}
                 className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#C6973F] text-white text-[0.72rem] tracking-[0.2em] uppercase font-medium hover:bg-[#b5872e] active:bg-[#a07528] transition-all duration-200"
               >
@@ -441,9 +441,8 @@ export default function ProductDetailClient({
                     Add to Cart
                   </>
                 )}
-              </button>
-              <button
-                type="button"
+              </RippleButton>
+              <RippleButton
                 onClick={() => {
                   void (async () => {
                     const ok = await toggleWishlist(wishlistItemFromProduct(product))
@@ -464,7 +463,7 @@ export default function ProductDetailClient({
                   className={isWishlisted ? 'fill-[#C6973F]' : ''}
                 />
                 {isWishlisted ? 'Wishlisted' : 'Wishlist'}
-              </button>
+              </RippleButton>
             </div>
 
             {/* Delivery info */}
