@@ -103,7 +103,7 @@ function ComboBox({
   }, [open])
 
   const inputClass =
-    `w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${error ? 'border-red-300' : 'border-[#1A1A1A]/12'}`
+    `w-full px-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors ${error ? 'border-red-300' : 'border-lux-ink/12'}`
 
   return (
     <div ref={rootRef} className="relative">
@@ -123,7 +123,7 @@ function ComboBox({
       />
       {open && filtered.length > 0 && (
         <ul
-          className="absolute z-20 left-0 right-0 top-full mt-0.5 max-h-48 overflow-y-auto border border-[#1A1A1A]/12 bg-white shadow-md py-1"
+          className="absolute z-20 left-0 right-0 top-full mt-0.5 max-h-48 overflow-y-auto border border-lux-ink/12 bg-white shadow-md py-1"
           role="listbox"
         >
           {filtered.map((opt) => (
@@ -131,7 +131,7 @@ function ComboBox({
               <button
                 type="button"
                 role="option"
-                className="w-full text-left px-3 py-2 text-sm text-[#1A1A1A] hover:bg-[#FAFAF8] transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-lux-ink hover:bg-lux-ivory transition-colors"
                 onMouseDown={(e) => {
                   e.preventDefault()
                   onChange(opt)
@@ -241,18 +241,18 @@ export default function EditProductPage() {
   // ── States ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center">
-        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      <div className="min-h-screen bg-lux-ivory-muted flex items-center justify-center">
+        <div className="w-9 h-9 border-[3px] border-lux-gold/25 border-t-lux-gold rounded-full animate-spin" />
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center">
+      <div className="min-h-screen bg-lux-ivory-muted flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-serif text-[#1A1A1A] mb-3">Product not found.</p>
-          <Link href="/admin/products" className="text-[0.7rem] tracking-[0.15em] uppercase text-[#C6973F] hover:text-[#b5872e]">
+          <p className="text-lg font-serif text-lux-ink mb-3">Product not found.</p>
+          <Link href="/admin/products" className="text-[0.7rem] tracking-[0.15em] uppercase text-lux-gold hover:text-lux-gold-hover">
             ← Back to Products
           </Link>
         </div>
@@ -262,32 +262,32 @@ export default function EditProductPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center">
+      <div className="min-h-screen bg-lux-ivory-muted flex items-center justify-center">
         <div className="bg-white border border-emerald-100 px-10 py-12 text-center max-w-sm w-full mx-4 shadow-sm">
           <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <Check size={26} strokeWidth={2} className="text-emerald-600" />
           </div>
-          <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-2">Product Updated!</h2>
-          <p className="text-sm text-[#1A1A1A]/45 font-light">Redirecting to products…</p>
+          <h2 className="font-serif text-xl font-semibold text-lux-ink mb-2">Product Updated!</h2>
+          <p className="text-sm text-lux-ink/45 font-light">Redirecting to products…</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 bg-[#F7F7F5] min-h-screen">
+    <div className="p-6 md:p-8 space-y-6 bg-lux-ivory-muted min-h-screen">
 
       {/* Header */}
       <div>
-        <nav className="flex items-center gap-1.5 text-[0.65rem] text-[#1A1A1A]/35 mb-3 flex-wrap">
-          <Link href="/admin" className="hover:text-[#C6973F] transition-colors">Dashboard</Link>
+        <nav className="flex items-center gap-1.5 text-[0.65rem] text-lux-ink/35 mb-3 flex-wrap">
+          <Link href="/admin" className="hover:text-lux-gold transition-colors">Dashboard</Link>
           <ChevronRight size={10} strokeWidth={1.5} />
-          <Link href="/admin/products" className="hover:text-[#C6973F] transition-colors">Products</Link>
+          <Link href="/admin/products" className="hover:text-lux-gold transition-colors">Products</Link>
           <ChevronRight size={10} strokeWidth={1.5} />
-          <span className="text-[#C6973F]">Edit Product</span>
+          <span className="text-lux-gold">Edit Product</span>
         </nav>
-        <h1 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">Edit Product</h1>
-        <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light">Update the product details below</p>
+        <h1 className="font-serif text-2xl md:text-3xl font-semibold text-lux-ink">Edit Product</h1>
+        <p className="text-[0.7rem] text-lux-ink/40 mt-1 font-light">Update the product details below</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -297,11 +297,11 @@ export default function EditProductPage() {
           <div className="lg:col-span-2 space-y-5">
 
             {/* Basic info */}
-            <div className="bg-white border border-[#1A1A1A]/8 p-6 space-y-5">
-              <h2 className="text-sm font-semibold text-[#1A1A1A] pb-3 border-b border-[#1A1A1A]/6">Basic Information</h2>
+            <div className="bg-white border border-lux-ink/8 p-6 space-y-5">
+              <h2 className="text-sm font-semibold text-lux-ink pb-3 border-b border-lux-ink/6">Basic Information</h2>
 
               <div>
-                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                   Product Name <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -309,13 +309,13 @@ export default function EditProductPage() {
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
                   placeholder="e.g. Kundan Polki Ring"
-                  className={`w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.name ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
+                  className={`w-full px-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors ${errors.name ? 'border-red-300' : 'border-lux-ink/12'}`}
                 />
                 <FieldError msg={errors.name} />
               </div>
 
               <div>
-                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                   Description <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -323,14 +323,14 @@ export default function EditProductPage() {
                   value={form.description}
                   onChange={(e) => set('description', e.target.value)}
                   placeholder="Describe the product…"
-                  className={`w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors resize-none ${errors.description ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
+                  className={`w-full px-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors resize-none ${errors.description ? 'border-red-300' : 'border-lux-ink/12'}`}
                 />
                 <FieldError msg={errors.description} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                     Category <span className="text-red-400">*</span>
                   </label>
                   <ComboBox
@@ -343,7 +343,7 @@ export default function EditProductPage() {
                   <FieldError msg={errors.category} />
                 </div>
                 <div>
-                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                     Material <span className="text-red-400">*</span>
                   </label>
                   <ComboBox
@@ -358,7 +358,7 @@ export default function EditProductPage() {
               </div>
 
               <div>
-                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                   SIZES
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -371,8 +371,8 @@ export default function EditProductPage() {
                         onClick={() => toggleSize(size)}
                         className={`px-3 py-2 text-xs font-medium border transition-all duration-150 ${
                           selected
-                            ? 'border-[#C6973F] text-[#C6973F]'
-                            : 'border-[#1A1A1A]/12 text-[#1A1A1A]/50'
+                            ? 'border-lux-gold text-lux-gold'
+                            : 'border-lux-ink/12 text-lux-ink/50'
                         }`}
                       >
                         {size}
@@ -384,56 +384,56 @@ export default function EditProductPage() {
             </div>
 
             {/* Pricing */}
-            <div className="bg-white border border-[#1A1A1A]/8 p-6 space-y-5">
-              <h2 className="text-sm font-semibold text-[#1A1A1A] pb-3 border-b border-[#1A1A1A]/6">Pricing & Inventory</h2>
+            <div className="bg-white border border-lux-ink/8 p-6 space-y-5">
+              <h2 className="text-sm font-semibold text-lux-ink pb-3 border-b border-lux-ink/6">Pricing & Inventory</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                     Original Price (₹) <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/30 text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lux-ink/30 text-sm">₹</span>
                     <input
                       type="number" min="1" value={form.price}
                       onChange={(e) => set('price', e.target.value)}
                       placeholder="2999"
-                      className={`w-full pl-7 pr-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.price ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
+                      className={`w-full pl-7 pr-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors ${errors.price ? 'border-red-300' : 'border-lux-ink/12'}`}
                     />
                   </div>
                   <FieldError msg={errors.price} />
                 </div>
                 <div>
-                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">Sale Price (₹)</label>
+                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">Sale Price (₹)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/30 text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lux-ink/30 text-sm">₹</span>
                     <input
                       type="number" min="1" value={form.salePrice}
                       onChange={(e) => set('salePrice', e.target.value)}
                       placeholder="1999"
-                      className={`w-full pl-7 pr-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.salePrice ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
+                      className={`w-full pl-7 pr-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors ${errors.salePrice ? 'border-red-300' : 'border-lux-ink/12'}`}
                     />
                   </div>
                   <FieldError msg={errors.salePrice} />
                 </div>
                 <div>
-                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+                  <label className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
                     Stock Qty <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="number" min="0" value={form.stock}
                     onChange={(e) => set('stock', e.target.value)}
                     placeholder="50"
-                    className={`w-full px-4 py-2.5 bg-[#FAFAF8] border text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors ${errors.stock ? 'border-red-300' : 'border-[#1A1A1A]/12'}`}
+                    className={`w-full px-4 py-2.5 bg-lux-ivory border text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors ${errors.stock ? 'border-red-300' : 'border-lux-ink/12'}`}
                   />
                   <FieldError msg={errors.stock} />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-3 px-4 bg-[#FAFAF8] border border-[#1A1A1A]/8">
+              <div className="flex items-center justify-between py-3 px-4 bg-lux-ivory border border-lux-ink/8">
                 <div>
-                  <p className="text-sm font-medium text-[#1A1A1A]">Featured Product</p>
-                  <p className="text-[0.65rem] text-[#1A1A1A]/40 font-light mt-0.5">Show on the homepage Featured Collection</p>
+                  <p className="text-sm font-medium text-lux-ink">Featured Product</p>
+                  <p className="text-[0.65rem] text-lux-ink/40 font-light mt-0.5">Show on the homepage Featured Collection</p>
                 </div>
                 <button
                   type="button"
@@ -441,7 +441,7 @@ export default function EditProductPage() {
                   aria-checked={form.featured ? 'true' : 'false'}
                   title="Toggle featured"
                   onClick={() => set('featured', !form.featured)}
-                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${form.featured ? 'bg-[#C6973F]' : 'bg-[#1A1A1A]/15'}`}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${form.featured ? 'bg-lux-gold' : 'bg-lux-ink/15'}`}
                 >
                   <span
                     className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
@@ -452,22 +452,22 @@ export default function EditProductPage() {
             </div>
 
             {/* Images */}
-            <div className="bg-white border border-[#1A1A1A]/8 p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-[#1A1A1A] pb-3 border-b border-[#1A1A1A]/6">
-                Product Images <span className="text-[#1A1A1A]/30 font-light text-xs">(up to 4)</span>
+            <div className="bg-white border border-lux-ink/8 p-6 space-y-4">
+              <h2 className="text-sm font-semibold text-lux-ink pb-3 border-b border-lux-ink/6">
+                Product Images <span className="text-lux-ink/30 font-light text-xs">(up to 4)</span>
               </h2>
               {form.images.map((url, i) => (
                 <div key={i} className="flex gap-3 items-center">
-                  <span className="text-[0.58rem] text-[#1A1A1A]/25 font-bold w-5 text-center flex-shrink-0">{i + 1}</span>
+                  <span className="text-[0.58rem] text-lux-ink/25 font-bold w-5 text-center flex-shrink-0">{i + 1}</span>
                   <input
                     type="url"
                     value={url}
                     onChange={(e) => setImage(i, e.target.value)}
                     placeholder={`Image ${i + 1} URL (https://…)`}
-                    className="flex-1 px-4 py-2.5 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-lux-ivory border border-lux-ink/12 text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors"
                   />
                   {url && (
-                    <button type="button" onClick={() => setImage(i, '')} className="text-[#1A1A1A]/20 hover:text-red-400 transition-colors" aria-label="Clear image URL">
+                    <button type="button" onClick={() => setImage(i, '')} className="text-lux-ink/20 hover:text-red-400 transition-colors" aria-label="Clear image URL">
                       <X size={14} strokeWidth={1.5} />
                     </button>
                   )}
@@ -480,40 +480,40 @@ export default function EditProductPage() {
           <div className="space-y-5">
 
             {/* Preview */}
-            <div className="bg-white border border-[#1A1A1A]/8 p-5">
-              <h2 className="text-[0.65rem] tracking-[0.2em] uppercase text-[#1A1A1A]/35 font-semibold mb-4">Preview</h2>
-              <div className="w-full aspect-square bg-[#FDF6EC] mb-4 flex items-center justify-center border border-[#C6973F]/10 overflow-hidden">
+            <div className="bg-white border border-lux-ink/8 p-5">
+              <h2 className="text-[0.65rem] tracking-[0.2em] uppercase text-lux-ink/35 font-semibold mb-4">Preview</h2>
+              <div className="w-full aspect-square bg-lux-ivory mb-4 flex items-center justify-center border border-lux-gold/10 overflow-hidden">
                 {form.images[0] ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={form.images[0]} alt="preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center opacity-30">
-                    <Plus size={24} strokeWidth={0.8} className="text-[#C6973F] mx-auto" />
-                    <p className="text-[0.6rem] text-[#1A1A1A]/40 mt-1 font-light">Add image URL</p>
+                    <Plus size={24} strokeWidth={0.8} className="text-lux-gold mx-auto" />
+                    <p className="text-[0.6rem] text-lux-ink/40 mt-1 font-light">Add image URL</p>
                   </div>
                 )}
               </div>
-              <p className="font-serif text-base font-semibold text-[#1A1A1A] truncate">{form.name || 'Product Name'}</p>
-              {form.category && <p className="text-[0.65rem] text-[#1A1A1A]/35 font-light mt-0.5">{form.category}</p>}
+              <p className="font-serif text-base font-semibold text-lux-ink truncate">{form.name || 'Product Name'}</p>
+              {form.category && <p className="text-[0.65rem] text-lux-ink/35 font-light mt-0.5">{form.category}</p>}
               <div className="flex items-center gap-2 mt-2">
-                {form.salePrice && <span className="text-[#C6973F] font-semibold text-sm">₹{Number(form.salePrice).toLocaleString('en-IN')}</span>}
+                {form.salePrice && <span className="text-lux-gold font-semibold text-sm">₹{Number(form.salePrice).toLocaleString('en-IN')}</span>}
                 {form.price && (
-                  <span className={`text-sm ${form.salePrice ? 'text-[#1A1A1A]/30 line-through' : 'text-[#C6973F] font-semibold'}`}>
+                  <span className={`text-sm ${form.salePrice ? 'text-lux-ink/30 line-through' : 'text-lux-gold font-semibold'}`}>
                     ₹{Number(form.price).toLocaleString('en-IN')}
                   </span>
                 )}
               </div>
               {form.featured && (
-                <span className="inline-block mt-2 px-2 py-0.5 text-[0.55rem] font-semibold tracking-wide rounded-full bg-[#C6973F]/12 text-[#C6973F] border border-[#C6973F]/20">Featured</span>
+                <span className="inline-block mt-2 px-2 py-0.5 text-[0.55rem] font-semibold tracking-wide rounded-full bg-lux-gold/12 text-lux-gold border border-lux-gold/20">Featured</span>
               )}
             </div>
 
             {/* Actions */}
-            <div className="bg-white border border-[#1A1A1A]/8 p-5 space-y-3">
+            <div className="bg-white border border-lux-ink/8 p-5 space-y-3">
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full py-3 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-lux-gold text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {saving
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving…</>
@@ -526,7 +526,7 @@ export default function EditProductPage() {
               )}
               <Link
                 href="/admin/products"
-                className="w-full py-3 border border-[#1A1A1A]/15 text-[#1A1A1A]/50 text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:border-[#1A1A1A]/25 hover:text-[#1A1A1A]/70 transition-all flex items-center justify-center"
+                className="w-full py-3 border border-lux-ink/15 text-lux-ink/50 text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:border-lux-ink/25 hover:text-lux-ink/70 transition-all flex items-center justify-center"
               >
                 Cancel
               </Link>

@@ -21,13 +21,13 @@ function SectionHeader({ Icon, title, subtitle }: {
   subtitle: string
 }) {
   return (
-    <div className="flex items-start gap-3 pb-5 border-b border-[#1A1A1A]/6 mb-6">
-      <div className="w-9 h-9 bg-[#C6973F]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <Icon size={16} strokeWidth={1.5} className="text-[#C6973F]" />
+    <div className="flex items-start gap-3 pb-5 border-b border-lux-ink/6 mb-6">
+      <div className="w-9 h-9 bg-lux-gold/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Icon size={16} strokeWidth={1.5} className="text-lux-gold" />
       </div>
       <div>
-        <h2 className="text-sm font-semibold text-[#1A1A1A]">{title}</h2>
-        <p className="text-[0.65rem] text-[#1A1A1A]/40 font-light mt-0.5">{subtitle}</p>
+        <h2 className="text-sm font-semibold text-lux-ink">{title}</h2>
+        <p className="text-[0.65rem] text-lux-ink/40 font-light mt-0.5">{subtitle}</p>
       </div>
     </div>
   )
@@ -35,7 +35,7 @@ function SectionHeader({ Icon, title, subtitle }: {
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="text-[0.63rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+    <label className="text-[0.63rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
       {children}{required && <span className="text-red-400 ml-0.5">*</span>}
     </label>
   )
@@ -45,7 +45,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full px-4 py-2.5 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${props.className ?? ''}`}
+      className={`w-full px-4 py-2.5 bg-lux-ivory border border-lux-ink/12 text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${props.className ?? ''}`}
     />
   )
 }
@@ -58,7 +58,7 @@ function Toggle({ on, onChange, id }: { on: boolean; onChange: () => void; id: s
       role="switch"
       aria-checked={on ? 'true' : 'false'}
       onClick={onChange}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-[#C6973F]/30 ${on ? 'bg-[#C6973F]' : 'bg-[#1A1A1A]/15'}`}
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-lux-gold/30 ${on ? 'bg-lux-gold' : 'bg-lux-ink/15'}`}
     >
       <span
         className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200 ${on ? 'left-[1.35rem]' : 'left-0.5'}`}
@@ -70,7 +70,7 @@ function Toggle({ on, onChange, id }: { on: boolean; onChange: () => void; id: s
 function SaveBanner({ show }: { show: boolean }) {
   if (!show) return null
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 bg-[#1A1A1A] text-white text-xs font-medium shadow-2xl">
+    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 bg-lux-black text-white text-xs font-medium shadow-2xl">
       <Check size={13} strokeWidth={2.5} className="text-emerald-400" />
       Changes saved successfully
     </div>
@@ -144,14 +144,14 @@ export default function AdminSettingsPage() {
   const adminEmail = 'maddy@dkmstack.com'
 
   return (
-    <div className="p-6 md:p-8 space-y-6 bg-[#F7F7F5] min-h-screen">
+    <div className="p-6 md:p-8 space-y-6 bg-lux-ivory-muted min-h-screen">
 
       <SaveBanner show={storeSaved || notifSaved} />
 
       {/* Header */}
       <div>
-        <h1 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">Settings</h1>
-        <p className="text-[0.7rem] text-[#1A1A1A]/40 mt-1 font-light">
+        <h1 className="font-serif text-2xl md:text-3xl font-semibold text-lux-ink">Settings</h1>
+        <p className="text-[0.7rem] text-lux-ink/40 mt-1 font-light">
           Manage your store preferences and admin configuration
         </p>
       </div>
@@ -160,7 +160,7 @@ export default function AdminSettingsPage() {
         <div className="lg:col-span-2 space-y-6">
 
           {/* ── Store Settings ── */}
-          <div className="bg-white border border-[#1A1A1A]/8 p-6">
+          <div className="bg-white border border-lux-ink/8 p-6">
             <SectionHeader Icon={Store as never} title="Store Settings" subtitle="Basic information about your store" />
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -203,7 +203,7 @@ export default function AdminSettingsPage() {
                   value={store.address}
                   onChange={(e) => setStore((s) => ({ ...s, address: e.target.value }))}
                   placeholder="Full store address…"
-                  className="w-full px-4 py-2.5 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors resize-none"
+                  className="w-full px-4 py-2.5 bg-lux-ivory border border-lux-ink/12 text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors resize-none"
                 />
               </div>
               <div className="flex items-center justify-between pt-2">
@@ -216,7 +216,7 @@ export default function AdminSettingsPage() {
                   <button
                     onClick={saveStore}
                     disabled={storeSaving}
-                    className="px-6 py-2.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-lux-gold text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
                   >
                     {storeSaving ? (
                       <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving…</>
@@ -228,20 +228,20 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* ── Admin / Password ── */}
-          <div className="bg-white border border-[#1A1A1A]/8 p-6">
+          <div className="bg-white border border-lux-ink/8 p-6">
             <SectionHeader Icon={Lock as never} title="Admin Settings" subtitle="Manage your admin account credentials" />
             <div className="space-y-4">
               {/* Readonly email */}
               <div>
                 <Label>Admin Email</Label>
                 <Input value={adminEmail} disabled readOnly />
-                <p className="text-[0.6rem] text-[#1A1A1A]/30 mt-1.5 font-light">
+                <p className="text-[0.6rem] text-lux-ink/30 mt-1.5 font-light">
                   Admin email cannot be changed here. Contact support to update it.
                 </p>
               </div>
 
-              <div className="border-t border-[#1A1A1A]/6 pt-5 mt-2">
-                <p className="text-[0.65rem] tracking-[0.15em] uppercase text-[#1A1A1A]/35 font-semibold mb-4">
+              <div className="border-t border-lux-ink/6 pt-5 mt-2">
+                <p className="text-[0.65rem] tracking-[0.15em] uppercase text-lux-ink/35 font-semibold mb-4">
                   Change Password
                 </p>
                 <div className="space-y-3">
@@ -261,7 +261,7 @@ export default function AdminSettingsPage() {
                           <button
                             type="button"
                             onClick={() => setPwShow((s) => ({ ...s, [key]: !s[key] }))}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/25 hover:text-[#1A1A1A]/50 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-lux-ink/25 hover:text-lux-ink/50 transition-colors"
                             aria-label={pwShow[key] ? 'Hide password' : 'Show password'}
                           >
                             {pwShow[key] ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
@@ -287,7 +287,7 @@ export default function AdminSettingsPage() {
                   <button
                     onClick={updatePassword}
                     disabled={pwSaving}
-                    className="px-6 py-2.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-lux-gold text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
                   >
                     {pwSaving ? (
                       <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Updating…</>
@@ -299,7 +299,7 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* ── Notifications ── */}
-          <div className="bg-white border border-[#1A1A1A]/8 p-6">
+          <div className="bg-white border border-lux-ink/8 p-6">
             <SectionHeader Icon={Bell as never} title="Notification Settings" subtitle="Choose which events send you an email alert" />
             <div className="space-y-1">
               {[
@@ -307,10 +307,10 @@ export default function AdminSettingsPage() {
                 { key: 'lowStock'       as const, label: 'Low Stock Alert',   sub: 'Alert when any product stock falls below 10'     },
                 { key: 'customerSignup' as const, label: 'Customer Signup',   sub: 'Alert when a new customer creates an account'    },
               ].map(({ key, label, sub }) => (
-                <div key={key} className="flex items-center justify-between py-4 border-b border-[#1A1A1A]/5 last:border-0">
+                <div key={key} className="flex items-center justify-between py-4 border-b border-lux-ink/5 last:border-0">
                   <div className="pr-4">
-                    <label htmlFor={`notif-${key}`} className="text-sm font-medium text-[#1A1A1A] cursor-pointer">{label}</label>
-                    <p className="text-[0.65rem] text-[#1A1A1A]/40 font-light mt-0.5">{sub}</p>
+                    <label htmlFor={`notif-${key}`} className="text-sm font-medium text-lux-ink cursor-pointer">{label}</label>
+                    <p className="text-[0.65rem] text-lux-ink/40 font-light mt-0.5">{sub}</p>
                   </div>
                   <Toggle
                     id={`notif-${key}`}
@@ -320,7 +320,7 @@ export default function AdminSettingsPage() {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#1A1A1A]/6">
+            <div className="flex items-center justify-between mt-5 pt-4 border-t border-lux-ink/6">
               {notifSaved && (
                 <span className="flex items-center gap-1.5 text-[0.65rem] text-emerald-600 font-medium">
                   <Check size={12} strokeWidth={2.5} /> Preferences saved
@@ -330,7 +330,7 @@ export default function AdminSettingsPage() {
                 <button
                   onClick={saveNotifs}
                   disabled={notifSaving}
-                  className="px-6 py-2.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
+                  className="px-6 py-2.5 bg-lux-gold text-white text-[0.68rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-150 disabled:opacity-60 flex items-center gap-2"
                 >
                   {notifSaving ? (
                     <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving…</>
@@ -346,12 +346,12 @@ export default function AdminSettingsPage() {
         <div className="space-y-6">
 
           {/* Quick info */}
-          <div className="bg-white border border-[#1A1A1A]/8 p-5">
-            <p className="text-[0.6rem] tracking-[0.2em] uppercase text-[#1A1A1A]/30 font-semibold mb-4">Store Info</p>
-            <div className="space-y-3 text-xs text-[#1A1A1A]/55 font-light">
+          <div className="bg-white border border-lux-ink/8 p-5">
+            <p className="text-[0.6rem] tracking-[0.2em] uppercase text-lux-ink/30 font-semibold mb-4">Store Info</p>
+            <div className="space-y-3 text-xs text-lux-ink/55 font-light">
               <div className="flex justify-between">
                 <span>Version</span>
-                <span className="text-[#1A1A1A]/70 font-medium">1.0.0</span>
+                <span className="text-lux-ink/70 font-medium">1.0.0</span>
               </div>
               <div className="flex justify-between">
                 <span>Environment</span>
@@ -359,15 +359,15 @@ export default function AdminSettingsPage() {
               </div>
               <div className="flex justify-between">
                 <span>Currency</span>
-                <span className="text-[#1A1A1A]/70 font-medium">₹ INR</span>
+                <span className="text-lux-ink/70 font-medium">₹ INR</span>
               </div>
               <div className="flex justify-between">
                 <span>Free Delivery</span>
-                <span className="text-[#1A1A1A]/70 font-medium">Above ₹999</span>
+                <span className="text-lux-ink/70 font-medium">Above ₹999</span>
               </div>
               <div className="flex justify-between">
                 <span>Express Delivery</span>
-                <span className="text-[#1A1A1A]/70 font-medium">₹99</span>
+                <span className="text-lux-ink/70 font-medium">₹99</span>
               </div>
             </div>
           </div>

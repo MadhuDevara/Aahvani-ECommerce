@@ -14,8 +14,8 @@ const COLLECTIONS = [
     tag:         'New Season',
     description: 'Luminous pieces crafted for the most cherished moments of your life. From temple-inspired sets to modern Kundan, each design tells a story of eternal love.',
     pieces:      '48 pieces',
-    bg:          'bg-[#F7EDD8]',
-    accent:      'from-[#C6973F]/20 to-[#C6973F]/5',
+    bg:          'bg-lux-ivory-muted',
+    accent:      'from-lux-gold/20 to-lux-gold/5',
   },
   {
     slug:        'festive',
@@ -23,8 +23,8 @@ const COLLECTIONS = [
     tag:         'Bestseller',
     description: 'Celebrate every festival with the brilliance of Meenakari, Jadau and polished gold. Designed to shine as brightly as your celebrations.',
     pieces:      '36 pieces',
-    bg:          'bg-[#F0E4CC]',
-    accent:      'from-[#C6973F]/15 to-[#F0E4CC]/0',
+    bg:          'bg-lux-ivory-deep',
+    accent:      'from-lux-gold/15 to-transparent',
   },
   {
     slug:        'daily-wear',
@@ -32,8 +32,8 @@ const COLLECTIONS = [
     tag:         'Lightweight',
     description: 'Understated elegance for every day. Delicate rings, subtle hoops and minimalist pendants that pair effortlessly with any outfit, any occasion.',
     pieces:      '62 pieces',
-    bg:          'bg-[#EDE4D5]',
-    accent:      'from-[#C6973F]/12 to-transparent',
+    bg:          'bg-lux-ivory-deep',
+    accent:      'from-lux-gold/12 to-transparent',
   },
   {
     slug:        'gift-sets',
@@ -41,8 +41,8 @@ const COLLECTIONS = [
     tag:         'Curated',
     description: 'Thoughtfully curated sets presented in our signature gift box. The perfect expression of love, wrapped in luxury and ready to delight.',
     pieces:      '24 sets',
-    bg:          'bg-[#F3EAD6]',
-    accent:      'from-[#C6973F]/18 to-transparent',
+    bg:          'bg-lux-ivory-muted',
+    accent:      'from-lux-gold/18 to-transparent',
   },
 ]
 
@@ -50,79 +50,79 @@ const COLLECTIONS = [
 function GoldDivider() {
   return (
     <div className="flex items-center justify-center gap-3 my-2" aria-hidden="true">
-      <span className="h-px w-10 bg-[#C6973F]/40" />
+      <span className="h-px w-10 bg-lux-gold/40" />
       <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-        <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" />
+        <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" />
       </svg>
-      <span className="h-px w-10 bg-[#C6973F]/40" />
+      <span className="h-px w-10 bg-lux-gold/40" />
     </div>
   )
 }
 
 export default function CollectionsPage() {
   return (
-    <div className="min-h-screen bg-[#FDF6EC]">
+    <div className="bg-lux-ivory">
 
       {/* ── Hero ── */}
-      <section className="py-20 md:py-28 text-center px-4">
-        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-4">
+      <section className="px-4 pb-5 pt-2 text-center md:pb-6 md:pt-3">
+        <p className="mb-2 text-[0.6rem] font-medium uppercase tracking-[0.42em] text-lux-gold">
           Aahvani Jewels
         </p>
-        <h1 className="font-serif text-4xl md:text-6xl font-semibold text-[#1A1A1A] leading-tight mb-4">
+        <h1 className="mb-2 font-serif text-[1.75rem] font-semibold leading-tight text-lux-ink sm:text-4xl md:text-5xl lg:text-5xl">
           Our Collections
         </h1>
         <GoldDivider />
-        <p className="mt-5 text-sm md:text-base text-[#1A1A1A]/50 font-light max-w-xl mx-auto leading-relaxed">
+        <p className="mx-auto mt-3 max-w-xl text-sm font-light leading-snug text-lux-ink/50 md:text-[0.95rem] md:leading-relaxed">
           Each collection is a chapter in our story — handcrafted in India, finished with the
           precision of generations, and offered to you with love.
         </p>
       </section>
 
       {/* ── Collection cards ── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-8">
+      <section className="mx-auto max-w-[min(100%,var(--lux-max))] space-y-5 px-4 pb-12 pt-1 sm:px-6 sm:pb-16 lg:px-8">
         {COLLECTIONS.map((col, i) => {
           const isEven = i % 2 === 1
           return (
             <article
               key={col.slug}
-              className={`grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-[#C6973F]/12 bg-white group ${isEven ? 'md:[direction:rtl]' : ''}`}
+              className={`grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-lux-gold/12 bg-white group ${isEven ? 'md:[direction:rtl]' : ''}`}
             >
               {/* Image placeholder */}
-              <div className={`relative h-72 md:h-auto min-h-[20rem] ${col.bg} flex items-center justify-center overflow-hidden ${isEven ? 'md:[direction:ltr]' : ''}`}>
+              <div className={`relative h-56 min-h-[14rem] md:h-auto md:min-h-[17rem] ${col.bg} flex items-center justify-center overflow-hidden ${isEven ? 'md:[direction:ltr]' : ''}`}>
                 <div className={`absolute inset-0 bg-gradient-to-br ${col.accent}`} aria-hidden="true" />
                 {/* Decorative rings */}
-                <div className="absolute w-64 h-64 border border-[#C6973F]/10 rounded-full" aria-hidden="true" />
-                <div className="absolute w-44 h-44 border border-[#C6973F]/15 rounded-full" aria-hidden="true" />
+                <div className="absolute h-44 w-44 rounded-full border border-lux-gold/8" aria-hidden="true" />
+                <div className="absolute h-32 w-32 rounded-full border border-lux-gold/12" aria-hidden="true" />
                 <div className="relative z-10 text-center">
-                  <Gem size={40} strokeWidth={0.6} className="text-[#C6973F]/30 mx-auto mb-3" />
-                  <p className="text-[0.62rem] tracking-[0.3em] uppercase text-[#C6973F]/50 font-medium">
+                  <Gem size={40} strokeWidth={0.6} className="text-lux-gold/30 mx-auto mb-3" />
+                  <p className="text-[0.62rem] tracking-[0.3em] uppercase text-lux-gold/50 font-medium">
                     {col.pieces}
                   </p>
                 </div>
                 {/* Tag */}
-                <span className="absolute top-5 left-5 px-3 py-1 bg-[#C6973F] text-white text-[0.6rem] tracking-[0.2em] uppercase font-semibold">
+                <span className="absolute top-5 left-5 px-3 py-1 bg-lux-gold text-white text-[0.6rem] tracking-[0.2em] uppercase font-semibold">
                   {col.tag}
                 </span>
               </div>
 
               {/* Content */}
-              <div className={`flex flex-col justify-center px-8 md:px-12 py-12 ${isEven ? 'md:[direction:ltr]' : ''}`}>
-                <p className="text-[0.6rem] tracking-[0.35em] uppercase text-[#C6973F] font-medium mb-3">
+              <div className={`flex flex-col justify-center px-6 py-8 md:px-10 md:py-10 lg:px-12 ${isEven ? 'md:[direction:ltr]' : ''}`}>
+                <p className="mb-2 text-[0.6rem] font-medium uppercase tracking-[0.35em] text-lux-gold">
                   Collection
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A] leading-snug mb-4">
+                <h2 className="mb-3 font-serif text-2xl font-semibold leading-snug text-lux-ink md:text-3xl lg:text-4xl">
                   {col.name}
                 </h2>
-                <div className="flex items-center gap-3 mb-5" aria-hidden="true">
-                  <span className="h-px w-8 bg-[#C6973F]/40" />
-                  <Sparkles size={10} strokeWidth={1.5} className="text-[#C6973F]/60" />
+                <div className="mb-4 flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px w-8 bg-lux-gold/40" />
+                  <Sparkles size={10} strokeWidth={1.5} className="text-lux-gold/60" />
                 </div>
-                <p className="text-sm text-[#1A1A1A]/55 font-light leading-relaxed mb-8 max-w-sm">
+                <p className="mb-6 max-w-sm text-sm font-light leading-relaxed text-lux-ink/55 md:mb-8">
                   {col.description}
                 </p>
                 <Link
                   href="/shop"
-                  className="self-start flex items-center gap-3 px-7 py-3.5 bg-[#C6973F] text-white text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-200 group"
+                  className="self-start flex items-center gap-3 px-7 py-3.5 bg-lux-gold text-white text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-200 group"
                 >
                   Shop Now
                   <ArrowRight size={13} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-200" />
@@ -134,8 +134,8 @@ export default function CollectionsPage() {
       </section>
 
       {/* ── Bottom CTA ── */}
-      <section className="bg-[#1A1A1A] py-20 text-center px-4">
-        <p className="text-[0.6rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-4">
+      <section className="bg-lux-black px-4 py-12 text-center md:py-14">
+        <p className="text-[0.6rem] tracking-[0.4em] uppercase text-lux-gold font-medium mb-4">
           Can&apos;t decide?
         </p>
         <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white mb-4">
@@ -147,7 +147,7 @@ export default function CollectionsPage() {
         </p>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-3 px-10 py-4 border border-[#C6973F] text-[#C6973F] text-[0.68rem] tracking-[0.25em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
+          className="inline-flex items-center gap-3 px-10 py-4 border border-lux-gold text-lux-gold text-[0.68rem] tracking-[0.25em] uppercase font-medium hover:bg-lux-gold hover:text-white transition-all duration-200"
         >
           View All Products
           <ArrowRight size={13} strokeWidth={1.5} />

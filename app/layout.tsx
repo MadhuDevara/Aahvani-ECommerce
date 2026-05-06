@@ -1,20 +1,28 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ClientMain from "@/components/ClientMain";
+import { LuxuryProviders } from "@/components/providers/LuxuryProviders";
+import PageTransition from "@/components/providers/PageTransition";
+import ScrollProgress from "@/components/ui/ScrollProgress";
+import CartDrawer from "@/components/cart/CartDrawer";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -31,12 +39,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#FDF6EC] text-[#1A1A1A]">
-        <Navbar />
-        <ClientMain>{children}</ClientMain>
-        <Footer />
+      <body className="flex min-h-full flex-col bg-lux-ivory text-lux-ink">
+        <LuxuryProviders>
+          <ScrollProgress />
+          <Navbar />
+          <ClientMain>
+            <PageTransition>{children}</PageTransition>
+          </ClientMain>
+          <Footer />
+          <CartDrawer />
+          <ScrollToTop />
+        </LuxuryProviders>
       </body>
     </html>
   );

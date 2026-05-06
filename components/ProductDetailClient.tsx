@@ -34,10 +34,10 @@ import RippleButton from '@/components/ui/RippleButton'
 // ─── Thumbnail image variants (simulate 4 angles of the same product) ─────────
 
 const THUMB_BG = [
-  'bg-[#F5EBD8]',
-  'bg-[#EDE4D5]',
-  'bg-[#F9F0E3]',
-  'bg-[#EFE0C9]',
+  'bg-lux-ivory-muted',
+  'bg-lux-ivory-deep',
+  'bg-lux-ivory',
+  'bg-lux-ivory-muted',
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ function RelatedCard({ product }: { product: Product }) {
   const wishlisted     = wishlistItems.some((i) => i.id === productRouteId(product))
   const discount = Math.round((1 - product.salePrice / product.originalPrice) * 100)
   return (
-    <div className="group bg-white hover:shadow-[0_8px_32px_rgba(198,151,63,0.12)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
+    <div className="group bg-white hover:shadow-[0_8px_32px_color-mix(in_srgb,var(--lux-gold)_12%,transparent)] transition-shadow duration-300 flex-shrink-0 w-52 sm:w-auto">
       <ProductTileWithWishlist
         href={`/shop/${encodeURIComponent(productRouteId(product))}`}
         productName={product.name}
@@ -118,7 +118,7 @@ function RelatedCard({ product }: { product: Product }) {
         }}
         label={
           product.label ? (
-            <span className="pointer-events-none absolute top-2 left-2 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-[#C6973F] text-white font-medium">
+            <span className="pointer-events-none absolute top-2 left-2 text-[0.55rem] tracking-[0.12em] uppercase px-2 py-0.5 bg-lux-gold text-white font-medium">
               {product.label}
             </span>
           ) : null
@@ -126,13 +126,13 @@ function RelatedCard({ product }: { product: Product }) {
       />
       <div className="p-3.5">
         <Link href={`/shop/${encodeURIComponent(productRouteId(product))}`}>
-          <h3 className="font-serif text-[0.88rem] font-medium text-[#1A1A1A] mb-2 group-hover:text-[#C6973F] transition-colors duration-200 leading-snug">
+          <h3 className="font-serif text-[0.88rem] font-medium text-lux-ink mb-2 group-hover:text-lux-gold transition-colors duration-200 leading-snug">
             {product.name}
           </h3>
         </Link>
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-[#C6973F] font-semibold text-sm">{inr(product.salePrice)}</span>
-          <span className="text-[#1A1A1A]/30 text-xs line-through">{inr(product.originalPrice)}</span>
+          <span className="text-lux-gold font-semibold text-sm">{inr(product.salePrice)}</span>
+          <span className="text-lux-ink/30 text-xs line-through">{inr(product.originalPrice)}</span>
           <span className="text-[0.58rem] text-emerald-600 font-medium">{discount}% off</span>
         </div>
         <RippleButton
@@ -151,7 +151,7 @@ function RelatedCard({ product }: { product: Product }) {
               router.push(loginPath(pathname || '/shop'))
             }
           }}
-          className="w-full py-2 border border-[#C6973F] text-[#C6973F] text-[0.62rem] tracking-[0.15em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
+          className="w-full py-2 border border-lux-gold text-lux-gold text-[0.62rem] tracking-[0.15em] uppercase font-medium hover:bg-lux-gold hover:text-white transition-all duration-200"
         >
           Add to Cart
         </RippleButton>
@@ -240,22 +240,22 @@ export default function ProductDetailClient({
     <div className="bg-white">
 
       {/* ── Breadcrumb ────────────────────────────────────────────────────── */}
-      <div className="bg-[#FDF6EC] border-b border-[#C6973F]/12 px-4 py-3">
-        <nav aria-label="Breadcrumb" className="max-w-7xl mx-auto flex items-center gap-1.5 text-xs text-[#1A1A1A]/40 flex-wrap">
-          <Link href="/" className="hover:text-[#C6973F] transition-colors duration-150">Home</Link>
+      <div className="border-b border-lux-gold/12 bg-lux-ivory px-4 py-2.5 md:py-3">
+        <nav aria-label="Breadcrumb" className="mx-auto flex max-w-[min(100%,var(--lux-max))] flex-wrap items-center gap-1.5 text-xs text-lux-ink/40">
+          <Link href="/" className="hover:text-lux-gold transition-colors duration-150">Home</Link>
           <ChevronRight size={11} strokeWidth={1.5} className="flex-shrink-0" />
-          <Link href="/shop" className="hover:text-[#C6973F] transition-colors duration-150">Shop</Link>
+          <Link href="/shop" className="hover:text-lux-gold transition-colors duration-150">Shop</Link>
           <ChevronRight size={11} strokeWidth={1.5} className="flex-shrink-0" />
-          <Link href={`/shop?category=${product.category}`} className="hover:text-[#C6973F] transition-colors duration-150">
+          <Link href={`/shop?category=${product.category}`} className="hover:text-lux-gold transition-colors duration-150">
             {product.category}
           </Link>
           <ChevronRight size={11} strokeWidth={1.5} className="flex-shrink-0" />
-          <span className="text-[#C6973F] truncate max-w-[200px]">{product.name}</span>
+          <span className="text-lux-gold truncate max-w-[200px]">{product.name}</span>
         </nav>
       </div>
 
       {/* ── Product section ───────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+      <div className="mx-auto max-w-[min(100%,var(--lux-max))] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
 
           {/* ── LEFT — Image gallery ─────────────────────────────────────── */}
@@ -263,15 +263,15 @@ export default function ProductDetailClient({
             {/* Main image */}
             <div className={`relative aspect-square ${mainBg} overflow-hidden cursor-zoom-in group mb-3`}>
               {product.label && (
-                <span className="absolute top-4 left-4 z-10 text-[0.6rem] tracking-[0.14em] uppercase px-3 py-1 bg-[#C6973F] text-white font-medium">
+                <span className="absolute top-4 left-4 z-10 text-[0.6rem] tracking-[0.14em] uppercase px-3 py-1 bg-lux-gold text-white font-medium">
                   {product.label}
                 </span>
               )}
               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-                <Gem size={140} strokeWidth={0.55} className="text-[#C6973F] opacity-[0.18]" />
+                <Gem size={140} strokeWidth={0.55} className="text-lux-gold opacity-[0.18]" />
               </div>
               {/* Zoom hint */}
-              <span className="absolute bottom-3 right-3 text-[0.58rem] tracking-[0.15em] uppercase text-[#1A1A1A]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span className="absolute bottom-3 right-3 text-[0.58rem] tracking-[0.15em] uppercase text-lux-ink/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 Zoom
               </span>
             </div>
@@ -284,13 +284,13 @@ export default function ProductDetailClient({
                   onClick={() => setSelectedThumb(i)}
                   className={`aspect-square ${bg} relative overflow-hidden transition-all duration-200 ${
                     selectedThumb === i
-                      ? 'ring-2 ring-[#C6973F] ring-offset-1'
+                      ? 'ring-2 ring-lux-gold ring-offset-1'
                       : 'opacity-60 hover:opacity-100'
                   }`}
                   aria-label={`View image ${i + 1}`}
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Gem size={28} strokeWidth={0.8} className="text-[#C6973F] opacity-30" />
+                    <Gem size={28} strokeWidth={0.8} className="text-lux-gold opacity-30" />
                   </div>
                 </button>
               ))}
@@ -303,11 +303,11 @@ export default function ProductDetailClient({
             {/* Badge + Name + Rating */}
             <div>
               {product.label && (
-                <span className="inline-block text-[0.6rem] tracking-[0.18em] uppercase px-3 py-1 bg-[#C6973F]/12 text-[#C6973F] font-semibold mb-3">
+                <span className="inline-block text-[0.6rem] tracking-[0.18em] uppercase px-3 py-1 bg-lux-gold/12 text-lux-gold font-semibold mb-3">
                   {product.label}
                 </span>
               )}
-              <h1 className="font-serif text-3xl md:text-4xl font-semibold text-[#1A1A1A] leading-tight mb-3">
+              <h1 className="font-serif text-3xl md:text-4xl font-semibold text-lux-ink leading-tight mb-3">
                 {product.name}
               </h1>
 
@@ -320,14 +320,14 @@ export default function ProductDetailClient({
                       size={13}
                       className={
                         i < Math.floor(product.rating)
-                          ? 'fill-[#C6973F] text-[#C6973F]'
-                          : 'fill-[#1A1A1A]/10 text-[#1A1A1A]/10'
+                          ? 'fill-lux-gold text-lux-gold'
+                          : 'fill-lux-ink/10 text-lux-ink/10'
                       }
                     />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-[#C6973F]">{product.rating}</span>
-                <span className="text-sm text-[#1A1A1A]/40 font-light">
+                <span className="text-sm font-semibold text-lux-gold">{product.rating}</span>
+                <span className="text-sm text-lux-ink/40 font-light">
                   ({product.reviews.toLocaleString('en-IN')} reviews)
                 </span>
               </div>
@@ -335,10 +335,10 @@ export default function ProductDetailClient({
 
             {/* Price */}
             <div className="flex items-baseline gap-3 flex-wrap">
-              <span className="font-serif text-3xl font-semibold text-[#C6973F]">
+              <span className="font-serif text-3xl font-semibold text-lux-gold">
                 {inr(product.salePrice)}
               </span>
-              <span className="text-[#1A1A1A]/30 text-lg line-through font-light">
+              <span className="text-lux-ink/30 text-lg line-through font-light">
                 {inr(product.originalPrice)}
               </span>
               <span className="text-xs font-semibold text-white bg-emerald-500 px-2 py-0.5">
@@ -347,25 +347,25 @@ export default function ProductDetailClient({
             </div>
 
             {/* Material + SKU */}
-            <div className="flex items-center gap-5 text-xs text-[#1A1A1A]/45 font-light tracking-wide">
-              <span>Material: <span className="text-[#1A1A1A]">{product.material}</span></span>
-              <span className="h-3 w-px bg-[#1A1A1A]/20" aria-hidden="true" />
-              <span>SKU: <span className="text-[#1A1A1A]">{product.sku}</span></span>
+            <div className="flex items-center gap-5 text-xs text-lux-ink/45 font-light tracking-wide">
+              <span>Material: <span className="text-lux-ink">{product.material}</span></span>
+              <span className="h-3 w-px bg-lux-black/20" aria-hidden="true" />
+              <span>SKU: <span className="text-lux-ink">{product.sku}</span></span>
             </div>
 
-            <div className="h-px bg-[#1A1A1A]/8" />
+            <div className="h-px bg-lux-ink/8" />
 
             {/* Size selector */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[0.68rem] tracking-[0.22em] uppercase text-[#1A1A1A] font-medium">
+                <p className="text-[0.68rem] tracking-[0.22em] uppercase text-lux-ink font-medium">
                   {product.category === 'Necklaces' ? 'Length' : 'Size'}
                 </p>
                 {sizeGuideVariant !== 'earrings' && (
                   <button
                     type="button"
                     onClick={() => setSizeGuideOpen(true)}
-                    className="text-[0.65rem] text-[#C6973F] underline underline-offset-2 hover:no-underline transition-all duration-150"
+                    className="text-[0.65rem] text-lux-gold underline underline-offset-2 hover:no-underline transition-all duration-150"
                   >
                     Size Guide
                   </button>
@@ -378,8 +378,8 @@ export default function ProductDetailClient({
                     onClick={() => { setSelectedSize(size); setSizeError(false) }}
                     className={`px-4 py-2 text-xs font-medium tracking-wide border transition-all duration-150 ${
                       selectedSize === size
-                        ? 'border-[#C6973F] bg-[#C6973F] text-white'
-                        : 'border-[#1A1A1A]/20 text-[#1A1A1A]/60 hover:border-[#C6973F] hover:text-[#C6973F]'
+                        ? 'border-lux-gold bg-lux-gold text-white'
+                        : 'border-lux-ink/20 text-lux-ink/60 hover:border-lux-gold hover:text-lux-gold'
                     }`}
                   >
                     {size}
@@ -392,31 +392,31 @@ export default function ProductDetailClient({
                 </p>
               )}
               {!selectedSize && !sizeError && (
-                <p className="text-[0.62rem] text-[#C6973F]/70 mt-2">Please select a size</p>
+                <p className="text-[0.62rem] text-lux-gold/70 mt-2">Please select a size</p>
               )}
             </div>
 
             {/* Quantity */}
             <div>
-              <p className="text-[0.68rem] tracking-[0.22em] uppercase text-[#1A1A1A] font-medium mb-3">
+              <p className="text-[0.68rem] tracking-[0.22em] uppercase text-lux-ink font-medium mb-3">
                 Quantity
               </p>
               <div className="flex items-center gap-0">
                 <RippleButton
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
-                  className="w-10 h-10 flex items-center justify-center border border-[#1A1A1A]/20 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
+                  className="w-10 h-10 flex items-center justify-center border border-lux-ink/20 text-lux-ink/50 hover:border-lux-gold hover:text-lux-gold disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
                   aria-label="Decrease quantity"
                 >
                   <Minus size={14} strokeWidth={1.5} />
                 </RippleButton>
-                <span className="w-14 h-10 flex items-center justify-center border-y border-[#1A1A1A]/20 text-sm font-medium text-[#1A1A1A] select-none">
+                <span className="w-14 h-10 flex items-center justify-center border-y border-lux-ink/20 text-sm font-medium text-lux-ink select-none">
                   {quantity}
                 </span>
                 <RippleButton
                   onClick={() => setQuantity((q) => Math.min(10, q + 1))}
                   disabled={quantity >= 10}
-                  className="w-10 h-10 flex items-center justify-center border border-[#1A1A1A]/20 text-[#1A1A1A]/50 hover:border-[#C6973F] hover:text-[#C6973F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
+                  className="w-10 h-10 flex items-center justify-center border border-lux-ink/20 text-lux-ink/50 hover:border-lux-gold hover:text-lux-gold disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
                   aria-label="Increase quantity"
                 >
                   <Plus size={14} strokeWidth={1.5} />
@@ -428,7 +428,7 @@ export default function ProductDetailClient({
             <div className="flex flex-col sm:flex-row gap-3">
               <RippleButton
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#C6973F] text-white text-[0.72rem] tracking-[0.2em] uppercase font-medium hover:bg-[#b5872e] active:bg-[#a07528] transition-all duration-200"
+                className="flex-1 flex items-center justify-center gap-2 py-4 bg-lux-gold text-white text-[0.72rem] tracking-[0.2em] uppercase font-medium hover:bg-lux-gold-hover active:bg-lux-gold-hover transition-all duration-200"
               >
                 {addedToCart ? (
                   <>
@@ -453,36 +453,36 @@ export default function ProductDetailClient({
                 }}
                 className={`flex-1 sm:flex-none sm:px-6 flex items-center justify-center gap-2 py-4 border text-[0.72rem] tracking-[0.2em] uppercase font-medium transition-all duration-200 ${
                   isWishlisted
-                    ? 'bg-[#C6973F]/10 border-[#C6973F] text-[#C6973F]'
-                    : 'border-[#C6973F] text-[#C6973F] hover:bg-[#C6973F]/8'
+                    ? 'bg-lux-gold/10 border-lux-gold text-lux-gold'
+                    : 'border-lux-gold text-lux-gold hover:bg-lux-gold/8'
                 }`}
               >
                 <Heart
                   size={15}
                   strokeWidth={1.5}
-                  className={isWishlisted ? 'fill-[#C6973F]' : ''}
+                  className={isWishlisted ? 'fill-lux-gold' : ''}
                 />
                 {isWishlisted ? 'Wishlisted' : 'Wishlist'}
               </RippleButton>
             </div>
 
             {/* Delivery info */}
-            <div className="border border-[#1A1A1A]/8 divide-y divide-[#1A1A1A]/8">
+            <div className="border border-lux-ink/8 divide-y divide-lux-ink/8">
               {[
                 { Icon: Truck,          text: 'Free delivery on orders above ₹999'   },
                 { Icon: PackageCheck,   text: 'Delivery in 3–5 business days'        },
                 { Icon: RotateCcw,      text: 'Easy 7-day returns & exchange'        },
               ].map(({ Icon, text }) => (
                 <div key={text} className="flex items-center gap-3 px-4 py-3">
-                  <Icon size={15} strokeWidth={1.5} className="text-[#C6973F] flex-shrink-0" />
-                  <span className="text-xs text-[#1A1A1A]/55 font-light tracking-wide">{text}</span>
+                  <Icon size={15} strokeWidth={1.5} className="text-lux-gold flex-shrink-0" />
+                  <span className="text-xs text-lux-ink/55 font-light tracking-wide">{text}</span>
                 </div>
               ))}
             </div>
 
             {/* Share */}
             <div className="flex items-center gap-4 pt-1">
-              <span className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/40 font-medium">
+              <span className="text-[0.62rem] tracking-[0.25em] uppercase text-lux-ink/40 font-medium">
                 Share
               </span>
               <a
@@ -490,14 +490,14 @@ export default function ProductDetailClient({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => { if (!pageUrl) e.preventDefault() }}
-                className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/15 text-[#25D366] hover:border-[#25D366] transition-colors duration-150"
+                className="w-8 h-8 flex items-center justify-center border border-lux-ink/15 text-emerald-600 hover:border-emerald-600 transition-colors duration-150"
                 aria-label="Share on WhatsApp"
               >
                 <WhatsAppIcon />
               </a>
               <button
                 onClick={copyLink}
-                className="w-8 h-8 flex items-center justify-center border border-[#1A1A1A]/15 text-[#1A1A1A]/40 hover:border-[#C6973F] hover:text-[#C6973F] transition-colors duration-150"
+                className="w-8 h-8 flex items-center justify-center border border-lux-ink/15 text-lux-ink/40 hover:border-lux-gold hover:text-lux-gold transition-colors duration-150"
                 aria-label="Copy link"
               >
                 {copied
@@ -514,19 +514,19 @@ export default function ProductDetailClient({
       </div>
 
       {/* ── Product tabs ──────────────────────────────────────────────────── */}
-      <div className="border-t border-[#1A1A1A]/8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="border-t border-lux-ink/8 bg-white">
+        <div className="mx-auto max-w-[min(100%,var(--lux-max))] px-4 sm:px-6 lg:px-8">
 
           {/* Tab headers */}
-          <div className="flex border-b border-[#1A1A1A]/8 overflow-x-auto">
+          <div className="flex border-b border-lux-ink/8 overflow-x-auto">
             {['Description', 'Details', 'Care Instructions'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-shrink-0 px-6 py-4 text-[0.72rem] tracking-[0.15em] uppercase font-medium border-b-2 -mb-px transition-colors duration-150 ${
                   activeTab === tab
-                    ? 'border-[#C6973F] text-[#C6973F]'
-                    : 'border-transparent text-[#1A1A1A]/45 hover:text-[#1A1A1A]'
+                    ? 'border-lux-gold text-lux-gold'
+                    : 'border-transparent text-lux-ink/45 hover:text-lux-ink'
                 }`}
               >
                 {tab}
@@ -535,25 +535,25 @@ export default function ProductDetailClient({
           </div>
 
           {/* Tab content */}
-          <div className="py-10 max-w-3xl">
+          <div className="max-w-3xl py-8 md:py-10">
 
             {/* Description */}
             {activeTab === 'Description' && (
               <div className="space-y-5">
                 {product.description?.trim() ? (
-                  <div className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light whitespace-pre-wrap">
+                  <div className="text-lux-ink/65 text-sm leading-[1.9] font-light whitespace-pre-wrap">
                     {product.description.trim()}
                   </div>
                 ) : (
                   <>
-                    <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
-                      The <strong className="text-[#1A1A1A] font-medium">{product.name}</strong> is a timeless
+                    <p className="text-lux-ink/65 text-sm leading-[1.9] font-light">
+                      The <strong className="text-lux-ink font-medium">{product.name}</strong> is a timeless
                       piece inspired by the royal jewellery traditions of Rajasthan. Each piece is carefully handcrafted
                       by skilled artisans using age-old Kundan setting techniques, ensuring no two pieces are exactly alike.
                       The intricate detailing and careful finishing make this an heirloom-quality jewellery piece,
                       perfect for adding a touch of regal elegance to any ensemble.
                     </p>
-                    <p className="text-[#1A1A1A]/65 text-sm leading-[1.9] font-light">
+                    <p className="text-lux-ink/65 text-sm leading-[1.9] font-light">
                       Whether gifted to a loved one or cherished for yourself, this piece embodies the rich
                       heritage of Indian craftsmanship — a true invitation to elegance.
                     </p>
@@ -567,8 +567,8 @@ export default function ProductDetailClient({
                         'Certificate of authenticity included',
                       ].map((point) => (
                         <li key={point} className="flex items-start gap-2.5">
-                          <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#C6973F] flex-shrink-0" />
-                          <span className="text-sm text-[#1A1A1A]/65 font-light leading-relaxed">{point}</span>
+                          <span className="mt-1 w-1.5 h-1.5 rounded-full bg-lux-gold flex-shrink-0" />
+                          <span className="text-sm text-lux-ink/65 font-light leading-relaxed">{point}</span>
                         </li>
                       ))}
                     </ul>
@@ -579,18 +579,18 @@ export default function ProductDetailClient({
 
             {/* Details */}
             {activeTab === 'Details' && (
-              <div className="overflow-hidden border border-[#1A1A1A]/8">
+              <div className="overflow-hidden border border-lux-ink/8">
                 <table className="w-full text-sm">
                   <tbody>
                     {details.map(({ label, value }, i) => (
                       <tr
                         key={label}
-                        className={i % 2 === 0 ? 'bg-[#FDF6EC]/50' : 'bg-white'}
+                        className={i % 2 === 0 ? 'bg-lux-ivory/50' : 'bg-white'}
                       >
-                        <td className="px-5 py-3.5 text-[0.68rem] tracking-[0.18em] uppercase text-[#1A1A1A]/50 font-medium w-36 align-top">
+                        <td className="px-5 py-3.5 text-[0.68rem] tracking-[0.18em] uppercase text-lux-ink/50 font-medium w-36 align-top">
                           {label}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-[#1A1A1A]/80 font-light">
+                        <td className="px-5 py-3.5 text-sm text-lux-ink/80 font-light">
                           {value}
                         </td>
                       </tr>
@@ -625,22 +625,22 @@ export default function ProductDetailClient({
                     desc: 'Wipe with a soft, dry cloth after each use to remove oils and dust.',
                   },
                 ].map(({ Icon, title, desc }) => (
-                  <div key={title} className="flex gap-4 p-5 bg-[#FDF6EC]">
-                    <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-[#C6973F]/12">
-                      <Icon size={17} strokeWidth={1.5} className="text-[#C6973F]" />
+                  <div key={title} className="flex gap-4 p-5 bg-lux-ivory">
+                    <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-lux-gold/12">
+                      <Icon size={17} strokeWidth={1.5} className="text-lux-gold" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#1A1A1A] mb-1">{title}</p>
-                      <p className="text-xs text-[#1A1A1A]/50 font-light leading-relaxed">{desc}</p>
+                      <p className="text-sm font-medium text-lux-ink mb-1">{title}</p>
+                      <p className="text-xs text-lux-ink/50 font-light leading-relaxed">{desc}</p>
                     </div>
                   </div>
                 ))}
-                <div className="sm:col-span-2 flex gap-3 p-4 bg-[#C6973F]/8 border border-[#C6973F]/20 mt-2">
-                  <span className="text-[#C6973F] flex-shrink-0 mt-0.5">
+                <div className="sm:col-span-2 flex gap-3 p-4 bg-lux-gold/8 border border-lux-gold/20 mt-2">
+                  <span className="text-lux-gold flex-shrink-0 mt-0.5">
                     <Sparkles size={14} strokeWidth={1.5} />
                   </span>
-                  <p className="text-xs text-[#1A1A1A]/60 font-light leading-relaxed">
-                    <strong className="text-[#1A1A1A]/80 font-medium">Storage tip:</strong> Store each piece
+                  <p className="text-xs text-lux-ink/60 font-light leading-relaxed">
+                    <strong className="text-lux-ink/80 font-medium">Storage tip:</strong> Store each piece
                     separately in the provided pouch or an airtight zip-lock bag to prevent scratching and
                     slow down tarnishing.
                   </p>
@@ -652,19 +652,19 @@ export default function ProductDetailClient({
       </div>
 
       {relatedProducts.length > 0 && (
-      <div className="bg-[#FDF6EC] py-16 border-t border-[#C6973F]/12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="border-t border-lux-gold/12 bg-lux-ivory py-12 md:py-14">
+        <div className="mx-auto max-w-[min(100%,var(--lux-max))] px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <p className="text-[0.6rem] tracking-[0.4em] uppercase text-[#C6973F] mb-3">Discover More</p>
-            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-[#1A1A1A]">
+            <p className="text-[0.6rem] tracking-[0.4em] uppercase text-lux-gold mb-3">Discover More</p>
+            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-lux-ink">
               You May Also Like
             </h2>
             <div className="flex items-center justify-center gap-3 mt-4" aria-hidden="true">
-              <span className="h-px w-8 bg-[#C6973F]" />
+              <span className="h-px w-8 bg-lux-gold" />
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" />
+                <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" />
               </svg>
-              <span className="h-px w-8 bg-[#C6973F]" />
+              <span className="h-px w-8 bg-lux-gold" />
             </div>
           </div>
 

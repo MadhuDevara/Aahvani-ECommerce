@@ -52,10 +52,10 @@ export default function ProductTileWithWishlist({
             className="absolute inset-0 flex items-center justify-center opacity-[0.14]"
             aria-hidden="true"
           >
-            <Gem size={g.size} strokeWidth={g.stroke} className="text-[#C6973F]" />
+            <Gem size={g.size} strokeWidth={g.stroke} className="text-lux-gold" />
           </div>
           <div
-            className="absolute inset-0 bg-[#C6973F]/0 transition-colors duration-300 group-hover:bg-[#C6973F]/4"
+            className="absolute inset-0 bg-lux-gold/0 transition-colors duration-300 group-hover:bg-lux-gold/4"
             aria-hidden="true"
           />
         </div>
@@ -73,7 +73,7 @@ export default function ProductTileWithWishlist({
         <Heart
           size={gemSize === 'sm' ? 12 : 14}
           strokeWidth={1.5}
-          className={wishlisted ? 'fill-[#C6973F] text-[#C6973F]' : 'text-[#1A1A1A]/50'}
+          className={wishlisted ? 'fill-lux-gold text-lux-gold' : 'text-lux-ink/50'}
         />
       </RippleButton>
     </div>

@@ -29,29 +29,29 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 bg-white px-4">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-white px-4 py-12 md:py-16">
+      <div className="mx-auto max-w-[min(100%,var(--lux-max))]">
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-[0.6rem] tracking-[0.4em] uppercase text-[#C6973F] mb-4">Reviews</p>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.8rem] font-semibold text-[#1A1A1A] mb-5">
+        <div className="mb-8 text-center md:mb-10">
+          <p className="mb-2 text-[0.6rem] uppercase tracking-[0.4em] text-lux-gold">Reviews</p>
+          <h2 className="font-serif text-3xl font-semibold text-lux-ink md:text-4xl lg:text-[2.75rem]">
             What Our Customers Say
           </h2>
           <div className="flex items-center justify-center gap-3" aria-hidden="true">
-            <span className="h-px w-10 bg-[#C6973F]" />
+            <span className="h-px w-10 bg-lux-gold" />
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M5 0L6 4L10 5L6 6L5 10L4 6L0 5L4 4Z" fill="#C6973F" />
+              <path d="M5 0L6 4L10 5L6 6L5 10L4 6L0 5L4 4Z" fill="var(--lux-gold)" />
             </svg>
-            <span className="h-px w-10 bg-[#C6973F]" />
+            <span className="h-px w-10 bg-lux-gold" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {TESTIMONIALS.map(({ id, review, name, location, initials }) => (
-            <div key={id} className="relative bg-[#FDF6EC] p-8">
+            <div key={id} className="relative bg-lux-ivory p-7 md:p-9">
               {/* Decorative quote mark */}
               <span
-                className="absolute top-4 right-6 font-serif text-7xl leading-none text-[#C6973F]/12 select-none"
+                className="absolute top-4 right-6 font-serif text-7xl leading-none text-lux-gold/12 select-none"
                 aria-hidden="true"
               >
                 &ldquo;
@@ -60,23 +60,23 @@ export default function Testimonials() {
               {/* Stars */}
               <div className="flex gap-0.5 mb-5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={13} className="fill-[#C6973F] text-[#C6973F]" />
+                  <Star key={i} size={13} className="fill-lux-gold text-lux-gold" />
                 ))}
               </div>
 
-              <p className="text-[#1A1A1A]/60 text-sm leading-[1.85] mb-6 font-light">
+              <p className="text-lux-ink/60 text-sm leading-[1.85] mb-6 font-light">
                 &ldquo;{review}&rdquo;
               </p>
 
-              <div className="flex items-center gap-3 pt-5 border-t border-[#C6973F]/15">
-                <div className="w-9 h-9 rounded-full bg-[#C6973F]/15 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[#C6973F] text-[0.65rem] font-semibold tracking-wide">
+              <div className="flex items-center gap-3 pt-5 border-t border-lux-gold/15">
+                <div className="w-9 h-9 rounded-full bg-lux-gold/15 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lux-gold text-[0.65rem] font-semibold tracking-wide">
                     {initials}
                   </span>
                 </div>
                 <div>
-                  <p className="text-[#1A1A1A] text-sm font-medium">{name}</p>
-                  <p className="text-[#1A1A1A]/35 text-xs mt-0.5 tracking-wide">{location}</p>
+                  <p className="text-lux-ink text-sm font-medium">{name}</p>
+                  <p className="text-lux-ink/35 text-xs mt-0.5 tracking-wide">{location}</p>
                 </div>
               </div>
             </div>

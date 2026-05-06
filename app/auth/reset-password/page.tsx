@@ -67,27 +67,27 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#FDF6EC] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-lux-ivory flex items-center justify-center p-4">
         <div className="bg-white border border-emerald-100 px-10 py-12 text-center max-w-sm w-full shadow-sm">
           <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle size={26} className="text-emerald-600" strokeWidth={1.5} />
           </div>
-          <h2 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-2">Password Updated!</h2>
-          <p className="text-sm text-[#1A1A1A]/45 font-light">Redirecting to login…</p>
+          <h2 className="font-serif text-xl font-semibold text-lux-ink mb-2">Password Updated!</h2>
+          <p className="text-sm text-lux-ink/45 font-light">Redirecting to login…</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#FDF6EC] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-[#C6973F]/15 px-8 py-10 shadow-sm">
+    <div className="min-h-screen bg-lux-ivory flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-lux-gold/15 px-8 py-10 shadow-sm">
 
         {/* Header */}
         <div className="text-center mb-8">
-          <p className="text-[0.6rem] tracking-[0.3em] uppercase text-[#C6973F] font-medium mb-3">Aahvani Jewels</p>
-          <h1 className="font-serif text-2xl font-semibold text-[#1A1A1A]">Set New Password</h1>
-          <p className="text-sm text-[#1A1A1A]/40 font-light mt-2">Choose a strong password for your account</p>
+          <p className="text-[0.6rem] tracking-[0.3em] uppercase text-lux-gold font-medium mb-3">Aahvani Jewels</p>
+          <h1 className="font-serif text-2xl font-semibold text-lux-ink">Set New Password</h1>
+          <p className="text-sm text-lux-ink/40 font-light mt-2">Choose a strong password for your account</p>
         </div>
 
         {error && (
@@ -99,13 +99,13 @@ export default function ResetPasswordPage() {
 
         {!ready && !error ? (
           <div className="flex flex-col items-center gap-3 py-8">
-            <div className="w-7 h-7 border-[3px] border-[#C6973F]/20 border-t-[#C6973F] rounded-full animate-spin" />
-            <p className="text-xs text-[#1A1A1A]/35 font-light">Verifying reset link…</p>
+            <div className="w-7 h-7 border-[3px] border-lux-gold/20 border-t-lux-gold rounded-full animate-spin" />
+            <p className="text-xs text-lux-ink/35 font-light">Verifying reset link…</p>
           </div>
         ) : ready && (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[0.65rem] tracking-[0.1em] uppercase text-[#1A1A1A]/50 mb-2 font-medium">
+              <label className="block text-[0.65rem] tracking-[0.1em] uppercase text-lux-ink/50 mb-2 font-medium">
                 New Password
               </label>
               <div className="relative">
@@ -116,13 +116,13 @@ export default function ResetPasswordPage() {
                   required
                   minLength={6}
                   placeholder="Minimum 6 characters"
-                  className="w-full px-4 py-3 pr-11 border border-[#1A1A1A]/15 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/25 focus:outline-none focus:border-[#C6973F]/50 transition-colors bg-[#FDFAF5]"
+                  className="w-full px-4 py-3 pr-11 border border-lux-ink/15 text-sm text-lux-ink placeholder-lux-ink/25 focus:outline-none focus:border-lux-gold/50 transition-colors bg-lux-ivory-muted"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
                   title={showPass ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1A1A]/30 hover:text-[#1A1A1A]/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lux-ink/30 hover:text-lux-ink/60 transition-colors"
                 >
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div>
-              <label className="block text-[0.65rem] tracking-[0.1em] uppercase text-[#1A1A1A]/50 mb-2 font-medium">
+              <label className="block text-[0.65rem] tracking-[0.1em] uppercase text-lux-ink/50 mb-2 font-medium">
                 Confirm Password
               </label>
               <input
@@ -139,14 +139,14 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 placeholder="Re-enter your password"
-                className="w-full px-4 py-3 border border-[#1A1A1A]/15 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/25 focus:outline-none focus:border-[#C6973F]/50 transition-colors bg-[#FDFAF5]"
+                className="w-full px-4 py-3 border border-lux-ink/15 text-sm text-lux-ink placeholder-lux-ink/25 focus:outline-none focus:border-lux-gold/50 transition-colors bg-lux-ivory-muted"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 bg-lux-gold text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Updating…</>

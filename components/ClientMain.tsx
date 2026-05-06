@@ -6,7 +6,7 @@ export default function ClientMain({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
   const isAdmin  = pathname?.startsWith('/admin') ?? false
   return (
-    <main className={`flex-1 ${isAdmin ? '' : 'pt-16 md:pt-20'}`}>
+    <main className={isAdmin ? 'flex-1' : 'flex-1 pt-[var(--lux-nav-h)]'}>
       {children}
     </main>
   )

@@ -13,6 +13,8 @@ export interface Product {
   bg: string
   label?: string
   sku: string
+  /** From Supabase `slug` when set — used for `/products/[slug]` when present */
+  slug?: string
   /** From Supabase when provided in admin */
   description?: string
   /** From Supabase `sizes` when set in admin */
@@ -24,6 +26,16 @@ export function productRouteId(p: Product): string {
   if (p.routeId) return p.routeId
   if (p.id !== 0) return String(p.id)
   return p.sku
+}
+
+/** Prefer humane `/products/[slug]` when `slug` is set; else same segment as legacy shop routes. */
+export function productDetailSegment(p: Product): string {
+  if (p.slug && p.slug.trim() !== '') return p.slug.trim()
+  return productRouteId(p)
+}
+
+export function productDetailPath(p: Product): string {
+  return `/products/${encodeURIComponent(productDetailSegment(p))}`
 }
 
 export function numericProductIdFromRow(row: Record<string, unknown>): number {
@@ -52,9 +64,13 @@ export function mapSupabaseRowToProduct(row: Record<string, unknown>): Product {
     rating:        Number(row.rating ?? 4.0),
     reviews:       Number(row.reviews ?? 0),
     popularity:    Number(row.popularity ?? 50),
-    bg:            String(row.bg ?? 'bg-[#F5EBD8]'),
+    bg:            String(row.bg ?? 'bg-lux-ivory-muted'),
     label:         row.badge as string | undefined,
     sku:           String(row.sku || row.id || ''),
+    slug:
+      row.slug != null && String(row.slug).trim() !== ''
+        ? String(row.slug).trim()
+        : undefined,
     description:   row.description != null && String(row.description).trim() !== ''
       ? String(row.description)
       : undefined,

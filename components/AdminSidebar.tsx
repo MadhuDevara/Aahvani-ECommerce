@@ -43,11 +43,11 @@ export default function AdminSidebar({ email }: { email: string }) {
       {/* Logo */}
       <div className="px-6 py-7 border-b border-white/8">
         <Link href="/admin" className="flex items-center gap-3 group" onClick={() => setOpen(false)}>
-          <div className="w-8 h-8 border border-[#C6973F]/60 flex items-center justify-center">
-            <Gem size={14} strokeWidth={1} className="text-[#C6973F]" />
+          <div className="w-8 h-8 border border-lux-gold/60 flex items-center justify-center">
+            <Gem size={14} strokeWidth={1} className="text-lux-gold" />
           </div>
           <div>
-            <p className="font-serif text-[1.1rem] text-[#C6973F] leading-none tracking-wide">Aahvani</p>
+            <p className="font-serif text-[1.1rem] text-lux-gold leading-none tracking-wide">Aahvani</p>
             <p className="text-[0.52rem] text-white/25 tracking-[0.3em] uppercase mt-0.5 font-light">Admin Panel</p>
           </div>
         </Link>
@@ -64,7 +64,7 @@ export default function AdminSidebar({ email }: { email: string }) {
               onClick={() => setOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                 active
-                  ? 'bg-[#C6973F]/15 text-[#C6973F] border-l-2 border-[#C6973F]'
+                  ? 'bg-lux-gold/15 text-lux-gold border-l-2 border-lux-gold'
                   : 'text-white/45 hover:text-white/80 hover:bg-white/5 border-l-2 border-transparent'
               }`}
             >
@@ -95,16 +95,16 @@ export default function AdminSidebar({ email }: { email: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-[#1A1A1A] min-h-screen sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-lux-black min-h-screen sticky top-0 h-screen overflow-y-auto">
         <SidebarContent />
       </aside>
 
       {/* Mobile: top bar + drawer */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between px-4 py-4 bg-[#1A1A1A] border-b border-white/8">
+        <div className="flex items-center justify-between px-4 py-4 bg-lux-black border-b border-white/8">
           <Link href="/admin" className="flex items-center gap-2">
-            <Gem size={14} strokeWidth={1} className="text-[#C6973F]" />
-            <span className="font-serif text-base text-[#C6973F]">Aahvani Admin</span>
+            <Gem size={14} strokeWidth={1} className="text-lux-gold" />
+            <span className="font-serif text-base text-lux-gold">Aahvani Admin</span>
           </Link>
           <button
             onClick={() => setOpen((v) => !v)}
@@ -116,7 +116,7 @@ export default function AdminSidebar({ email }: { email: string }) {
         </div>
         {open && (
           <div className="fixed inset-0 z-50 flex">
-            <div className="w-56 bg-[#1A1A1A] h-full overflow-y-auto shadow-2xl">
+            <div className="w-56 bg-lux-black h-full overflow-y-auto shadow-2xl">
               <SidebarContent />
             </div>
             <button

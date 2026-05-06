@@ -6,9 +6,9 @@ import { Search, Package, Truck, CheckCircle, Clock, MapPin, AlertCircle, Check 
 function GoldDivider() {
   return (
     <div className="flex items-center gap-3 my-2" aria-hidden="true">
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
-      <span className="h-px w-8 bg-[#C6973F]/40" />
+      <span className="h-px w-8 bg-lux-gold/40" />
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" /></svg>
+      <span className="h-px w-8 bg-lux-gold/40" />
     </div>
   )
 }
@@ -34,7 +34,7 @@ const STATUS_ICON: Record<string, typeof Package> = {
 const STATUS_COLOR: Record<string, string> = {
   Delivered:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
   Shipped:    'bg-blue-50 text-blue-700 border border-blue-200',
-  Processing: 'bg-[#C6973F]/10 text-[#C6973F] border border-[#C6973F]/25',
+  Processing: 'bg-lux-gold/10 text-lux-gold border border-lux-gold/25',
   Cancelled:  'bg-red-50 text-red-600 border border-red-200',
 }
 
@@ -132,37 +132,37 @@ export default function TrackOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDF6EC]">
+    <div className="bg-lux-ivory">
 
-      <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
-        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Where is my order?</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">Track Your Order</h1>
+      <section className="border-b border-lux-gold/10 px-4 py-10 text-center md:py-12">
+        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-lux-gold font-medium mb-3">Where is my order?</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-lux-ink mb-3">Track Your Order</h1>
         <GoldDivider />
-        <p className="mt-4 text-sm text-[#1A1A1A]/45 font-light max-w-sm mx-auto leading-relaxed">
+        <p className="mt-4 text-sm text-lux-ink/45 font-light max-w-sm mx-auto leading-relaxed">
           Enter your Order ID and email address to get a live status update.
         </p>
       </section>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14 space-y-10">
 
-        <form onSubmit={handleTrack} className="bg-white border border-[#1A1A1A]/8 p-6 md:p-8 space-y-4">
+        <form onSubmit={handleTrack} className="bg-white border border-lux-ink/8 p-6 md:p-8 space-y-4">
           <div>
-            <label className="text-[0.63rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+            <label className="text-[0.63rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
               Order ID <span className="text-red-400">*</span>
             </label>
             <div className="relative">
-              <Package size={14} strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1A1A1A]/25" />
+              <Package size={14} strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lux-ink/25" />
               <input
                 type="text"
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 placeholder="Order number from confirmation email"
-                className="w-full pl-10 pr-4 py-3 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-lux-ivory border border-lux-ink/12 text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors"
               />
             </div>
           </div>
           <div>
-            <label className="text-[0.63rem] tracking-[0.15em] uppercase text-[#1A1A1A]/45 font-semibold block mb-1.5">
+            <label className="text-[0.63rem] tracking-[0.15em] uppercase text-lux-ink/45 font-semibold block mb-1.5">
               Email Address <span className="text-red-400">*</span>
             </label>
             <input
@@ -170,13 +170,13 @@ export default function TrackOrderPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email used to place the order"
-              className="w-full px-4 py-3 bg-[#FAFAF8] border border-[#1A1A1A]/12 text-sm text-[#1A1A1A] placeholder-[#1A1A1A]/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
+              className="w-full px-4 py-3 bg-lux-ivory border border-lux-ink/12 text-sm text-lux-ink placeholder-lux-ink/20 focus:outline-none focus:border-lux-gold/50 transition-colors"
             />
           </div>
           <button
             type="submit"
             disabled={loading || !orderId.trim() || !email.trim()}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.22em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-lux-gold text-white text-[0.7rem] tracking-[0.22em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Tracking…</>
@@ -184,7 +184,7 @@ export default function TrackOrderPage() {
               <><Search size={14} strokeWidth={1.5} />Track Order</>
             )}
           </button>
-          <p className="text-[0.62rem] text-[#1A1A1A]/30 text-center font-light">
+          <p className="text-[0.62rem] text-lux-ink/30 text-center font-light">
             Use the same email you entered at checkout. Your order number is in your confirmation email.
           </p>
         </form>
@@ -204,12 +204,12 @@ export default function TrackOrderPage() {
         {result && (
           <div className="space-y-6 animate-in">
 
-            <div className="bg-white border border-[#1A1A1A]/8 p-5">
+            <div className="bg-white border border-lux-ink/8 p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <p className="text-[0.6rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-1">Order</p>
-                  <p className="font-mono text-sm font-bold text-[#1A1A1A]">#{result.id}</p>
-                  <p className="text-xs text-[#1A1A1A]/50 font-light mt-0.5">{result.product}</p>
+                  <p className="text-[0.6rem] tracking-[0.25em] uppercase text-lux-ink/35 font-semibold mb-1">Order</p>
+                  <p className="font-mono text-sm font-bold text-lux-ink">#{result.id}</p>
+                  <p className="text-xs text-lux-ink/50 font-light mt-0.5">{result.product}</p>
                 </div>
                 <div className="text-right">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[0.62rem] font-semibold tracking-wide rounded-full ${STATUS_COLOR[result.status] ?? STATUS_COLOR.Processing}`}>
@@ -219,7 +219,7 @@ export default function TrackOrderPage() {
                     {result.status}
                   </span>
                   {result.eta && (
-                    <div className="flex items-center justify-end gap-1.5 mt-2 text-[0.62rem] text-[#1A1A1A]/35">
+                    <div className="flex items-center justify-end gap-1.5 mt-2 text-[0.62rem] text-lux-ink/35">
                       <MapPin size={10} strokeWidth={1.5} />
                       Est. {result.eta}
                     </div>
@@ -228,13 +228,13 @@ export default function TrackOrderPage() {
               </div>
 
               {result.trackingNo && (
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#1A1A1A]/6">
-                  <Truck size={12} strokeWidth={1.5} className="text-[#C6973F]" />
-                  <span className="text-[0.65rem] text-[#1A1A1A]/40 font-light">Tracking No:</span>
-                  <span className="font-mono text-xs font-semibold text-[#1A1A1A]">{result.trackingNo}</span>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-lux-ink/6">
+                  <Truck size={12} strokeWidth={1.5} className="text-lux-gold" />
+                  <span className="text-[0.65rem] text-lux-ink/40 font-light">Tracking No:</span>
+                  <span className="font-mono text-xs font-semibold text-lux-ink">{result.trackingNo}</span>
                   <button
                     onClick={() => copyTracking(result.trackingNo)}
-                    className="ml-auto text-[#1A1A1A]/25 hover:text-[#C6973F] transition-colors"
+                    className="ml-auto text-lux-ink/25 hover:text-lux-gold transition-colors"
                     aria-label="Copy tracking number"
                   >
                     {copied
@@ -246,8 +246,8 @@ export default function TrackOrderPage() {
               )}
             </div>
 
-            <div className="bg-white border border-[#1A1A1A]/8 p-6">
-              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-[#1A1A1A]/35 font-semibold mb-6">Order Timeline</p>
+            <div className="bg-white border border-lux-ink/8 p-6">
+              <p className="text-[0.62rem] tracking-[0.25em] uppercase text-lux-ink/35 font-semibold mb-6">Order Timeline</p>
               <div className="space-y-0">
                 {result.steps.map((step, i) => {
                   const isLast = i === result.steps.length - 1
@@ -256,25 +256,25 @@ export default function TrackOrderPage() {
                       <div className="flex flex-col items-center flex-shrink-0 w-6">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 ${
                           step.done
-                            ? 'bg-[#C6973F] border-[#C6973F]'
+                            ? 'bg-lux-gold border-lux-gold'
                             : step.current
-                              ? 'bg-white border-[#C6973F]'
-                              : 'bg-white border-[#1A1A1A]/15'
+                              ? 'bg-white border-lux-gold'
+                              : 'bg-white border-lux-ink/15'
                         }`}>
                           {step.done    ? <Check size={11} strokeWidth={2.5} className="text-white" />
-                          : step.current ? <span className="w-2.5 h-2.5 rounded-full bg-[#C6973F] animate-pulse" />
-                          : <span className="w-2 h-2 rounded-full bg-[#1A1A1A]/15" />}
+                          : step.current ? <span className="w-2.5 h-2.5 rounded-full bg-lux-gold animate-pulse" />
+                          : <span className="w-2 h-2 rounded-full bg-lux-ink/15" />}
                         </div>
-                        {!isLast && <div className={`w-0.5 flex-1 min-h-[2rem] my-1 rounded-full ${step.done ? 'bg-[#C6973F]/40' : 'bg-[#1A1A1A]/8'}`} />}
+                        {!isLast && <div className={`w-0.5 flex-1 min-h-[2rem] my-1 rounded-full ${step.done ? 'bg-lux-gold/40' : 'bg-lux-ink/8'}`} />}
                       </div>
                       <div className={`${isLast ? 'pb-0' : 'pb-5'} flex-1 pt-0.5`}>
-                        <p className={`text-sm font-medium ${step.current ? 'text-[#C6973F]' : step.done ? 'text-[#1A1A1A]' : 'text-[#1A1A1A]/25'}`}>
+                        <p className={`text-sm font-medium ${step.current ? 'text-lux-gold' : step.done ? 'text-lux-ink' : 'text-lux-ink/25'}`}>
                           {step.label}
                           {step.current && (
-                            <span className="ml-2 text-[0.55rem] tracking-[0.15em] uppercase bg-[#C6973F]/12 text-[#C6973F] px-2 py-0.5 font-semibold">Current</span>
+                            <span className="ml-2 text-[0.55rem] tracking-[0.15em] uppercase bg-lux-gold/12 text-lux-gold px-2 py-0.5 font-semibold">Current</span>
                           )}
                         </p>
-                        {step.time && <p className="text-[0.62rem] text-[#1A1A1A]/30 mt-0.5 font-light">{step.time}</p>}
+                        {step.time && <p className="text-[0.62rem] text-lux-ink/30 mt-0.5 font-light">{step.time}</p>}
                       </div>
                     </div>
                   )

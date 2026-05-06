@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 function GoldDivider() {
   return (
     <div className="flex items-center gap-3 my-2" aria-hidden="true">
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
-      <span className="h-px w-8 bg-[#C6973F]/40" />
+      <span className="h-px w-8 bg-lux-gold/40" />
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" /></svg>
+      <span className="h-px w-8 bg-lux-gold/40" />
     </div>
   )
 }
@@ -18,8 +18,8 @@ function GoldDivider() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-serif text-xl font-semibold text-[#1A1A1A]">{title}</h2>
-      <div className="space-y-3 text-sm text-[#1A1A1A]/60 font-light leading-relaxed">
+      <h2 className="font-serif text-xl font-semibold text-lux-ink">{title}</h2>
+      <div className="space-y-3 text-sm text-lux-ink/60 font-light leading-relaxed">
         {children}
       </div>
     </section>
@@ -28,18 +28,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#FDF6EC]">
+    <div className="bg-lux-ivory">
 
       {/* Header */}
-      <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
-        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Legal</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">Terms of Service</h1>
+      <section className="border-b border-lux-gold/10 px-4 py-10 text-center md:py-12">
+        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-lux-gold font-medium mb-3">Legal</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-lux-ink mb-3">Terms of Service</h1>
         <GoldDivider />
-        <p className="mt-4 text-xs text-[#1A1A1A]/35 font-light">Last updated: 2 May 2026</p>
+        <p className="mt-4 text-xs text-lux-ink/35 font-light">Last updated: 2 May 2026</p>
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-14">
-        <div className="bg-white border border-[#1A1A1A]/8 p-8 md:p-12 space-y-10">
+        <div className="bg-white border border-lux-ink/8 p-8 md:p-12 space-y-10">
 
           <Section title="1. Acceptance of Terms">
             <p>
@@ -53,7 +53,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="2. Products & Pricing">
             <p>
@@ -70,7 +70,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="3. Orders & Payments">
             <p>
@@ -84,7 +84,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="4. Shipping & Delivery">
             <p>
@@ -98,12 +98,12 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="5. Returns & Refunds">
             <p>
               We offer a 7-day return policy for eligible items. Please refer to our{' '}
-              <a href="/returns" className="text-[#C6973F] hover:underline">Returns Policy</a> for full
+              <a href="/returns" className="text-lux-gold hover:underline">Returns Policy</a> for full
               details on eligible items, the return process, and refund timelines.
             </p>
             <p>
@@ -112,7 +112,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="6. Intellectual Property">
             <p>
@@ -125,7 +125,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="7. User Accounts">
             <p>
@@ -135,7 +135,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="8. Limitation of Liability">
             <p>
@@ -146,7 +146,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="9. Governing Law">
             <p>
@@ -156,13 +156,13 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="h-px bg-[#1A1A1A]/6" />
+          <div className="h-px bg-lux-ink/6" />
 
           <Section title="10. Contact">
             <p>For any questions about these Terms, please contact:</p>
-            <div className="bg-[#C6973F]/6 border border-[#C6973F]/15 p-4 mt-2 space-y-1">
-              <p><span className="font-medium text-[#1A1A1A]/80">Email:</span> <a href="mailto:hello@aahvani.com" className="text-[#C6973F]">hello@aahvani.com</a></p>
-              <p><span className="font-medium text-[#1A1A1A]/80">Address:</span> 42, Jewellers Lane, Mumbai, Maharashtra – 400002</p>
+            <div className="bg-lux-gold/6 border border-lux-gold/15 p-4 mt-2 space-y-1">
+              <p><span className="font-medium text-lux-ink/80">Email:</span> <a href="mailto:hello@aahvani.com" className="text-lux-gold">hello@aahvani.com</a></p>
+              <p><span className="font-medium text-lux-ink/80">Address:</span> 42, Jewellers Lane, Mumbai, Maharashtra – 400002</p>
             </div>
           </Section>
 

@@ -30,8 +30,8 @@ export default async function ShopPage() {
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FDF6EC] flex items-center justify-center">
-        <div className="w-9 h-9 border-[3px] border-[#C6973F]/25 border-t-[#C6973F] rounded-full animate-spin" />
+      <div className="flex min-h-[32vh] items-center justify-center bg-lux-ivory py-16">
+        <div className="w-9 h-9 border-[3px] border-lux-gold/25 border-t-lux-gold rounded-full animate-spin" />
       </div>
     }>
       <ShopClient initialProducts={products} />

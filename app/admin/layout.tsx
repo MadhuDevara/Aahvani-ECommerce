@@ -25,11 +25,11 @@ function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-[#111] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-[#1A1A1A] border border-white/8 p-8 shadow-2xl">
+    <div className="min-h-screen bg-lux-black flex items-center justify-center p-4">
+      <div className="w-full max-w-sm bg-lux-black border border-white/8 p-8 shadow-2xl">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-8 h-8 bg-[#C6973F]/10 border border-[#C6973F]/20 flex items-center justify-center">
-            <Gem size={15} className="text-[#C6973F]" strokeWidth={1.5} />
+          <div className="w-8 h-8 bg-lux-gold/10 border border-lux-gold/20 flex items-center justify-center">
+            <Gem size={15} className="text-lux-gold" strokeWidth={1.5} />
           </div>
           <div>
             <p className="text-[0.6rem] tracking-[0.25em] uppercase text-white/30 font-light">Aahvani Jewels</p>
@@ -56,7 +56,7 @@ function AdminLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-lux-gold/50 transition-colors"
             />
           </div>
           <div>
@@ -68,7 +68,7 @@ function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 pr-11 bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-[#C6973F]/50 transition-colors"
+                className="w-full px-4 py-3 pr-11 bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 focus:outline-none focus:border-lux-gold/50 transition-colors"
               />
               <button
                 type="button"
@@ -83,7 +83,7 @@ function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#C6973F] text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-[#b5872e] transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+            className="w-full py-3 bg-lux-gold text-white text-[0.7rem] tracking-[0.18em] uppercase font-medium hover:bg-lux-gold-hover transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
           >
             {loading ? (
               <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in…</>
@@ -125,9 +125,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#111] flex items-center justify-center">
+      <div className="min-h-screen bg-lux-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-[3px] border-[#C6973F]/20 border-t-[#C6973F] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-[3px] border-lux-gold/20 border-t-lux-gold rounded-full animate-spin" />
           <p className="text-[0.65rem] tracking-[0.3em] uppercase text-white/20 font-light">Verifying access…</p>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (status === 'unauth') return <AdminLogin />
 
   return (
-    <div className="flex min-h-screen bg-[#F5F5F5]">
+    <div className="flex min-h-screen bg-lux-ivory-muted">
       <AdminSidebar email={email} />
       <div className="flex-1 min-w-0 overflow-x-hidden">
         {children}

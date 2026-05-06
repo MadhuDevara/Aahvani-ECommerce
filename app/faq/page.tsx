@@ -7,9 +7,9 @@ import Link from 'next/link'
 function GoldDivider() {
   return (
     <div className="flex items-center gap-3 my-2" aria-hidden="true">
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
-      <span className="h-px w-8 bg-[#C6973F]/40" />
+      <span className="h-px w-8 bg-lux-gold/40" />
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" /></svg>
+      <span className="h-px w-8 bg-lux-gold/40" />
     </div>
   )
 }
@@ -51,25 +51,25 @@ const FAQS = [
 
 function FaqItem({ q, a, isOpen, onToggle }: { q: string; a: string; isOpen: boolean; onToggle: () => void }) {
   return (
-    <div className={`border-b border-[#1A1A1A]/8 last:border-0 transition-colors ${isOpen ? 'bg-[#C6973F]/4' : 'bg-white hover:bg-[#FAFAF8]'}`}>
+    <div className={`border-b border-lux-ink/8 last:border-0 transition-colors ${isOpen ? 'bg-lux-gold/4' : 'bg-white hover:bg-lux-ivory'}`}>
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
         className="w-full flex items-start justify-between gap-4 px-6 py-5 text-left"
       >
-        <span className={`text-sm font-medium leading-relaxed transition-colors ${isOpen ? 'text-[#C6973F]' : 'text-[#1A1A1A]'}`}>
+        <span className={`text-sm font-medium leading-relaxed transition-colors ${isOpen ? 'text-lux-gold' : 'text-lux-ink'}`}>
           {q}
         </span>
         <ChevronDown
           size={16}
           strokeWidth={1.5}
-          className={`flex-shrink-0 mt-0.5 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C6973F]' : 'text-[#1A1A1A]/30'}`}
+          className={`flex-shrink-0 mt-0.5 transition-transform duration-300 ${isOpen ? 'rotate-180 text-lux-gold' : 'text-lux-ink/30'}`}
         />
       </button>
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <p className="px-6 pb-5 text-sm text-[#1A1A1A]/55 font-light leading-relaxed">
+        <p className="px-6 pb-5 text-sm text-lux-ink/55 font-light leading-relaxed">
           {a}
         </p>
       </div>
@@ -83,16 +83,16 @@ export default function FaqPage() {
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
 
   return (
-    <div className="min-h-screen bg-[#FDF6EC]">
+    <div className="bg-lux-ivory">
 
       {/* Hero */}
-      <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
-        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Got questions?</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">
+      <section className="border-b border-lux-gold/10 px-4 py-10 text-center md:py-12">
+        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-lux-gold font-medium mb-3">Got questions?</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-lux-ink mb-3">
           Frequently Asked Questions
         </h1>
         <GoldDivider />
-        <p className="mt-4 text-sm text-[#1A1A1A]/45 font-light max-w-md mx-auto leading-relaxed">
+        <p className="mt-4 text-sm text-lux-ink/45 font-light max-w-md mx-auto leading-relaxed">
           Find quick answers to the most common questions about our jewellery, shipping, returns and more.
         </p>
       </section>
@@ -100,7 +100,7 @@ export default function FaqPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-14 space-y-10">
 
         {/* Accordion */}
-        <div className="bg-white border border-[#1A1A1A]/8 overflow-hidden">
+        <div className="bg-white border border-lux-ink/8 overflow-hidden">
           {FAQS.map((faq, i) => (
             <FaqItem
               key={i}
@@ -113,15 +113,15 @@ export default function FaqPage() {
         </div>
 
         {/* Still have questions */}
-        <div className="bg-[#1A1A1A] p-8 text-center">
-          <p className="text-[0.6rem] tracking-[0.35em] uppercase text-[#C6973F] font-medium mb-3">Didn&apos;t find your answer?</p>
+        <div className="bg-lux-black p-8 text-center">
+          <p className="text-[0.6rem] tracking-[0.35em] uppercase text-lux-gold font-medium mb-3">Didn&apos;t find your answer?</p>
           <h3 className="font-serif text-2xl font-semibold text-white mb-3">We&apos;re here to help</h3>
           <p className="text-sm text-white/40 font-light max-w-sm mx-auto leading-relaxed mb-6">
             Our team replies within 24 hours. Write to us and we&apos;ll get back to you as soon as possible.
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 px-8 py-3 border border-[#C6973F] text-[#C6973F] text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-[#C6973F] hover:text-white transition-all duration-200"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-lux-gold text-lux-gold text-[0.68rem] tracking-[0.22em] uppercase font-medium hover:bg-lux-gold hover:text-white transition-all duration-200"
           >
             Contact Us
           </Link>

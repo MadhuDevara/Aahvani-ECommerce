@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 function GoldDivider() {
   return (
     <div className="flex items-center gap-3 my-2" aria-hidden="true">
-      <span className="h-px w-8 bg-[#C6973F]/40" />
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="#C6973F" /></svg>
-      <span className="h-px w-8 bg-[#C6973F]/40" />
+      <span className="h-px w-8 bg-lux-gold/40" />
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="none"><path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2Z" fill="var(--lux-gold)" /></svg>
+      <span className="h-px w-8 bg-lux-gold/40" />
     </div>
   )
 }
@@ -36,9 +36,9 @@ const DELIVERY_OPTIONS = [
     below:   null,
     days:    '2–3 business days',
     desc:    'Priority handling and faster courier. Perfect when you need it in a hurry.',
-    accent:  'bg-[#C6973F]/6 border-[#C6973F]/20',
-    iconBg:  'bg-[#C6973F]/15 text-[#C6973F]',
-    badge:   'bg-[#C6973F]/12 text-[#C6973F] border border-[#C6973F]/25',
+    accent:  'bg-lux-gold/6 border-lux-gold/20',
+    iconBg:  'bg-lux-gold/15 text-lux-gold',
+    badge:   'bg-lux-gold/12 text-lux-gold border border-lux-gold/25',
     badgeText: 'Fast',
   },
 ]
@@ -54,14 +54,14 @@ const STEPS = [
 
 export default function ShippingPage() {
   return (
-    <div className="min-h-screen bg-[#FDF6EC]">
+    <div className="bg-lux-ivory">
 
       {/* Hero */}
-      <section className="py-16 md:py-20 text-center px-4 border-b border-[#C6973F]/10">
-        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-[#C6973F] font-medium mb-3">Fast & Safe</p>
-        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-[#1A1A1A] mb-3">Shipping & Delivery</h1>
+      <section className="border-b border-lux-gold/10 px-4 py-10 text-center md:py-12">
+        <p className="text-[0.62rem] tracking-[0.4em] uppercase text-lux-gold font-medium mb-3">Fast & Safe</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-lux-ink mb-3">Shipping & Delivery</h1>
         <GoldDivider />
-        <p className="mt-4 text-sm text-[#1A1A1A]/45 font-light max-w-md mx-auto leading-relaxed">
+        <p className="mt-4 text-sm text-lux-ink/45 font-light max-w-md mx-auto leading-relaxed">
           We deliver across all of India. Free shipping on orders above ₹999.
         </p>
       </section>
@@ -70,7 +70,7 @@ export default function ShippingPage() {
 
         {/* Delivery options */}
         <section>
-          <h2 className="font-serif text-2xl font-semibold text-[#1A1A1A] mb-2">Delivery Options</h2>
+          <h2 className="font-serif text-2xl font-semibold text-lux-ink mb-2">Delivery Options</h2>
           <GoldDivider />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             {DELIVERY_OPTIONS.map((opt) => (
@@ -81,35 +81,35 @@ export default function ShippingPage() {
                 <div className={`w-12 h-12 ${opt.iconBg} flex items-center justify-center mb-5`}>
                   <opt.Icon size={22} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-1">{opt.name}</h3>
-                <p className="text-2xl font-bold text-[#C6973F] font-serif mb-0.5">{opt.price}</p>
-                {opt.below && <p className="text-xs text-[#1A1A1A]/40 font-light mb-3">{opt.below}</p>}
+                <h3 className="font-serif text-xl font-semibold text-lux-ink mb-1">{opt.name}</h3>
+                <p className="text-2xl font-bold text-lux-gold font-serif mb-0.5">{opt.price}</p>
+                {opt.below && <p className="text-xs text-lux-ink/40 font-light mb-3">{opt.below}</p>}
                 <div className="flex items-center gap-1.5 mb-4">
-                  <Clock size={12} strokeWidth={1.5} className="text-[#1A1A1A]/35" />
-                  <span className="text-xs text-[#1A1A1A]/55 font-medium">{opt.days}</span>
+                  <Clock size={12} strokeWidth={1.5} className="text-lux-ink/35" />
+                  <span className="text-xs text-lux-ink/55 font-medium">{opt.days}</span>
                 </div>
-                <p className="text-sm text-[#1A1A1A]/55 font-light leading-relaxed">{opt.desc}</p>
+                <p className="text-sm text-lux-ink/55 font-light leading-relaxed">{opt.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* All-India coverage */}
-        <section className="bg-white border border-[#1A1A1A]/8 p-6 md:p-8">
+        <section className="bg-white border border-lux-ink/8 p-6 md:p-8">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-[#C6973F]/10 flex items-center justify-center flex-shrink-0">
-              <MapPin size={22} strokeWidth={1.5} className="text-[#C6973F]" />
+            <div className="w-12 h-12 bg-lux-gold/10 flex items-center justify-center flex-shrink-0">
+              <MapPin size={22} strokeWidth={1.5} className="text-lux-gold" />
             </div>
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#1A1A1A] mb-2">All India Delivery</h3>
-              <p className="text-sm text-[#1A1A1A]/55 font-light leading-relaxed mb-4">
+              <h3 className="font-serif text-xl font-semibold text-lux-ink mb-2">All India Delivery</h3>
+              <p className="text-sm text-lux-ink/55 font-light leading-relaxed mb-4">
                 We ship to every pin code across India — from metro cities to smaller towns. Our courier partners include
                 Blue Dart, Delhivery, Xpressbees and India Post for remote areas.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Kolkata', 'Jaipur', 'All India'].map((city) => (
-                  <div key={city} className="flex items-center gap-1.5 text-xs text-[#1A1A1A]/55 font-light">
-                    <CheckCircle size={11} strokeWidth={2} className="text-[#C6973F]" />
+                  <div key={city} className="flex items-center gap-1.5 text-xs text-lux-ink/55 font-light">
+                    <CheckCircle size={11} strokeWidth={2} className="text-lux-gold" />
                     {city}
                   </div>
                 ))}
@@ -120,20 +120,20 @@ export default function ShippingPage() {
 
         {/* Delivery timeline */}
         <section>
-          <h2 className="font-serif text-2xl font-semibold text-[#1A1A1A] mb-2">How Your Order Travels</h2>
+          <h2 className="font-serif text-2xl font-semibold text-lux-ink mb-2">How Your Order Travels</h2>
           <GoldDivider />
           <div className="mt-8 space-y-0">
             {STEPS.map((step, i) => (
               <div key={step.label} className="flex gap-5">
                 <div className="flex flex-col items-center flex-shrink-0 w-8">
-                  <div className="w-8 h-8 rounded-full bg-[#C6973F] flex items-center justify-center flex-shrink-0 z-10">
+                  <div className="w-8 h-8 rounded-full bg-lux-gold flex items-center justify-center flex-shrink-0 z-10">
                     <span className="text-[0.62rem] font-bold text-white">{i + 1}</span>
                   </div>
-                  {i < STEPS.length - 1 && <div className="w-0.5 flex-1 bg-[#C6973F]/20 my-1 min-h-[2rem]" />}
+                  {i < STEPS.length - 1 && <div className="w-0.5 flex-1 bg-lux-gold/20 my-1 min-h-[2rem]" />}
                 </div>
                 <div className={`pb-6 ${i === STEPS.length - 1 ? 'pb-0' : ''} pt-1`}>
-                  <p className="text-sm font-semibold text-[#1A1A1A]">{step.label}</p>
-                  <p className="text-xs text-[#1A1A1A]/45 font-light mt-0.5 leading-relaxed">{step.desc}</p>
+                  <p className="text-sm font-semibold text-lux-ink">{step.label}</p>
+                  <p className="text-xs text-lux-ink/45 font-light mt-0.5 leading-relaxed">{step.desc}</p>
                 </div>
               </div>
             ))}
@@ -141,10 +141,10 @@ export default function ShippingPage() {
         </section>
 
         {/* Gift packaging */}
-        <section className="bg-[#1A1A1A] p-6 md:p-8">
+        <section className="bg-lux-black p-6 md:p-8">
           <div className="flex items-start gap-5">
-            <div className="w-12 h-12 bg-[#C6973F]/20 flex items-center justify-center flex-shrink-0">
-              <Gift size={22} strokeWidth={1.5} className="text-[#C6973F]" />
+            <div className="w-12 h-12 bg-lux-gold/20 flex items-center justify-center flex-shrink-0">
+              <Gift size={22} strokeWidth={1.5} className="text-lux-gold" />
             </div>
             <div>
               <h3 className="font-serif text-xl font-semibold text-white mb-2">Premium Gift Packaging</h3>
@@ -160,7 +160,7 @@ export default function ShippingPage() {
                   'Anti-tarnish pouch included',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-white/60 font-light">
-                    <CheckCircle size={13} strokeWidth={2} className="text-[#C6973F] flex-shrink-0" />
+                    <CheckCircle size={13} strokeWidth={2} className="text-lux-gold flex-shrink-0" />
                     {item}
                   </div>
                 ))}
@@ -177,13 +177,13 @@ export default function ShippingPage() {
               { Icon: Package, title: 'Insured Shipping',  sub: 'All orders are insured' },
               { Icon: Clock,   title: 'Real-time Tracking',sub: 'Track your order by email' },
             ].map(({ Icon, title, sub }) => (
-              <div key={title} className="flex items-center gap-4 p-4 bg-white border border-[#1A1A1A]/8">
-                <div className="w-10 h-10 bg-[#C6973F]/10 flex items-center justify-center flex-shrink-0">
-                  <Icon size={18} strokeWidth={1.5} className="text-[#C6973F]" />
+              <div key={title} className="flex items-center gap-4 p-4 bg-white border border-lux-ink/8">
+                <div className="w-10 h-10 bg-lux-gold/10 flex items-center justify-center flex-shrink-0">
+                  <Icon size={18} strokeWidth={1.5} className="text-lux-gold" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#1A1A1A]">{title}</p>
-                  <p className="text-xs text-[#1A1A1A]/40 font-light">{sub}</p>
+                  <p className="text-sm font-semibold text-lux-ink">{title}</p>
+                  <p className="text-xs text-lux-ink/40 font-light">{sub}</p>
                 </div>
               </div>
             ))}

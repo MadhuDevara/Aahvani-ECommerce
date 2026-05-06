@@ -1,43 +1,229 @@
 @import "tailwindcss" source("..");
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Aahvani Luxury — design tokens (single source of truth)
+   All UI references these --lux-* variables; Tailwind maps them via @theme below.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #FDF6EC;
-  --foreground: #1A1A1A;
+  /* —— Palette —— */
+  --lux-black: #0a0a0a;
+  --lux-ivory: #f5f0e8;
+  --lux-ivory-muted: #ebe6de;
+  --lux-ivory-deep: #e0dbd2;
+  --lux-gold: #c9a96e;
+  --lux-gold-hover: #b8955a;
+  --lux-gold-soft: color-mix(in srgb, var(--lux-gold) 35%, transparent);
+  --lux-stone: #7a756c;
+  --lux-stone-light: #d4cfc4;
+  --lux-stone-mid: #b8b3a8;
+  --lux-stone-dark: #5c574e;
+  --lux-ink: #121212;
+  --lux-ink-muted: color-mix(in srgb, var(--lux-ink) 62%, var(--lux-ivory));
+  --lux-ink-subtle: color-mix(in srgb, var(--lux-ink) 38%, var(--lux-ivory));
+
+  /* —— Semantic (aliases) —— */
+  --background: var(--lux-ivory);
+  --foreground: var(--lux-ink);
+  --lux-elevated: color-mix(in srgb, #ffffff 78%, var(--lux-ivory));
+
+  /* —— Layout —— */
+  --lux-nav-h: 4.5rem;
+  --lux-sticky-top: calc(var(--lux-nav-h) + 0.75rem);
+  --lux-section-y: clamp(2.75rem, 4vw, 4rem);
+  --lux-section-y-lg: clamp(4rem, 5vw, 6rem);
+  --lux-hero-compact-y: clamp(1.25rem, 3vw, 2.5rem);
+  --lux-gap-title: clamp(1rem, 2vw, 1.5rem);
+  --lux-max: 87.5rem;
+  --lux-radius-sm: 0.125rem;
+  --lux-radius-md: 0.5rem;
+  --lux-radius-lg: 1rem;
+  --lux-radius-xl: 1.5rem;
+
+  /* —— Motion (mesh) —— */
+  --lux-mesh-a: #ebe6de;
+  --lux-mesh-b: #e5dccf;
+  --lux-mesh-c: #f0ebe3;
+  --lux-mesh-d: #ddd8ce;
+  --lux-shadow-nav: 0 12px 48px color-mix(in srgb, var(--lux-black) 12%, transparent);
 }
 
+@media (min-width: 768px) {
+  :root {
+    --lux-nav-h: 5.25rem;
+  }
+}
+
+/* —— Tailwind v4 theme bridge —— */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-gold:        #C6973F;
-  --color-cream:       #FDF6EC;
-  --color-brand-black: #1A1A1A;
 
-  --font-sans:  var(--font-inter);
-  --font-serif: var(--font-playfair);
+  --color-lux-black: var(--lux-black);
+  --color-lux-ivory: var(--lux-ivory);
+  --color-lux-ivory-muted: var(--lux-ivory-muted);
+  --color-lux-ivory-deep: var(--lux-ivory-deep);
+  --color-lux-gold: var(--lux-gold);
+  --color-lux-gold-hover: var(--lux-gold-hover);
+  --color-lux-stone: var(--lux-stone);
+  --color-lux-stone-light: var(--lux-stone-light);
+  --color-lux-stone-mid: var(--lux-stone-mid);
+  --color-lux-stone-dark: var(--lux-stone-dark);
+  --color-lux-ink: var(--lux-ink);
+  --color-lux-ink-muted: var(--lux-ink-muted);
+  --color-lux-ink-subtle: var(--lux-ink-subtle);
+  --color-lux-elevated: var(--lux-elevated);
+
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-cormorant);
+
+  --max-w-lux: var(--lux-max);
+  --spacing-lux-nav: var(--lux-nav-h);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Native gold arrow (20×20, hotspot 4 2) — replaces legacy JS custom cursor */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%23c9a96e' stroke='%230a0a0a' stroke-width='1' stroke-linejoin='round' d='M4 2 L4 16 L8 12 L11 18 L13 17 L10 9 L17 9 Z'/%3E%3C/svg%3E")
+      4 2,
+    auto;
 }
 
+/* UA link/button cursor would override — inherit site gold cursor */
+a[href],
+button,
+[role='button'],
+label[for],
+summary,
+select {
+  cursor: inherit;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+input[type='url'],
+input[type='tel'],
+input[type='number'],
+input:not([type]),
+textarea {
+  cursor: text;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--lux-gold) 28%, transparent);
+  color: var(--lux-black);
+}
+
+/* ═══ Gradient mesh (hero / editorial) ═══ */
+@keyframes lux-gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes lux-marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.lux-marquee-track {
+  animation: lux-marquee-scroll 40s linear infinite;
+}
+
+.group:hover .lux-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-marquee-track {
+    animation: none;
+  }
+}
+
+.lux-gradient-mesh {
+  background: linear-gradient(
+    125deg,
+    var(--lux-mesh-a) 0%,
+    var(--lux-mesh-b) 32%,
+    var(--lux-mesh-c) 54%,
+    var(--lux-mesh-d) 76%,
+    var(--lux-ivory) 100%
+  );
+  background-size: 200% 200%;
+  animation: lux-gradient-shift 22s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-gradient-mesh {
+    animation: none;
+    background: var(--lux-ivory);
+  }
+}
+
+/* Radial veils — uses tokens only */
+.lux-hero-radials {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 70% 0%,
+      color-mix(in srgb, var(--lux-gold) 16%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 12% 92%,
+      color-mix(in srgb, var(--lux-black) 7%, transparent),
+      transparent 52%
+    );
+}
+
+/* Shimmer skeleton */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-shimmer {
   background-image: linear-gradient(
     90deg,
-    rgba(229, 231, 235, 1) 0%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(229, 231, 235, 1) 100%
+    var(--lux-stone-light) 0%,
+    color-mix(in srgb, #fff 65%, var(--lux-ivory)) 50%,
+    var(--lux-stone-light) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+  }
 }
 
 @keyframes ripple-expand {
